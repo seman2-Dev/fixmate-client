@@ -1,0 +1,27 @@
+import type { Metadata, Viewport } from "next";
+import { Toaster } from "sonner";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: "FixMate · Verified device & home appliance repair",
+    template: "%s · FixMate",
+  },
+  description:
+    "Book verified technicians to repair your phone, laptop, AC, fridge, TV and more. Track every job step by step and pay only after the work is done.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#12202c",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="en" className="h-full">
+      <body className="flex min-h-full flex-col">
+        {children}
+        <Toaster position="top-right" richColors closeButton toastOptions={{ duration: 3500 }} />
+      </body>
+    </html>
+  );
+}

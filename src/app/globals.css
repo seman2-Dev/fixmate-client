@@ -1,0 +1,203 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/figtree";
+
+/* ---------- FixMate design tokens ---------- */
+@theme {
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Figtree Variable", ui-sans-serif, sans-serif;
+
+  --color-paper: #f7f4ee;
+  --color-paper-2: #efeae0;
+
+  --color-ink-50: #f3f5f7;
+  --color-ink-100: #e3e8ed;
+  --color-ink-200: #c8d2dc;
+  --color-ink-300: #9fb0c0;
+  --color-ink-400: #70869b;
+  --color-ink-500: #4f667c;
+  --color-ink-600: #3b4f63;
+  --color-ink-700: #2a3b4c;
+  --color-ink-800: #1b2a38;
+  --color-ink-900: #12202c;
+  --color-ink-950: #0b141d;
+
+  --color-brand-50: #fff4ec;
+  --color-brand-100: #ffe5d2;
+  --color-brand-200: #ffc9a2;
+  --color-brand-300: #ffa468;
+  --color-brand-400: #fb7c37;
+  --color-brand-500: #ee5c14;
+  --color-brand-600: #d9480f;
+  --color-brand-700: #b13a0d;
+  --color-brand-800: #8c3011;
+  --color-brand-900: #732a11;
+
+  --color-teal-brand: #0f766e;
+
+  --shadow-card: 0 1px 2px rgb(18 32 44 / 0.05), 0 8px 24px -12px rgb(18 32 44 / 0.18);
+  --shadow-pop: 0 12px 40px -12px rgb(18 32 44 / 0.35);
+}
+
+:root {
+  --background: #f7f4ee;
+  --foreground: #12202c;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-ink-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
+
+/* ---------- Shared building blocks ---------- */
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-eyebrow {
+    @apply mb-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-700;
+  }
+
+  .section-title {
+    @apply text-3xl font-extrabold leading-tight text-ink-900 sm:text-4xl;
+  }
+
+  .section-lead {
+    @apply mt-3 max-w-2xl text-base leading-relaxed text-ink-600 sm:text-lg;
+  }
+
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98];
+  }
+  .btn-sm {
+    @apply px-3.5 py-2 text-[13px];
+  }
+  .btn-lg {
+    @apply px-7 py-3.5 text-base;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+  }
+  .btn-dark {
+    @apply bg-ink-900 text-white hover:bg-ink-700;
+  }
+  .btn-outline {
+    @apply border border-ink-200 bg-white text-ink-800 hover:border-ink-400 hover:bg-ink-50;
+  }
+  .btn-ghost {
+    @apply text-ink-700 hover:bg-ink-100;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-success {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700;
+  }
+
+  .card {
+    @apply rounded-2xl border border-ink-100 bg-white shadow-card;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-semibold text-ink-800;
+  }
+  .field {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-300 transition focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-ink-50 disabled:text-ink-500;
+  }
+  .field-error {
+    @apply mt-1.5 text-xs font-medium text-red-600;
+  }
+
+  .table-wrap {
+    @apply overflow-x-auto rounded-2xl border border-ink-100 bg-white shadow-card;
+  }
+  .table-base {
+    @apply w-full min-w-[720px] border-collapse text-left text-sm;
+  }
+  .table-base th {
+    @apply whitespace-nowrap bg-ink-50 px-4 py-3 text-xs font-bold uppercase tracking-wider text-ink-500;
+  }
+  .table-base td {
+    @apply border-t border-ink-100 px-4 py-3.5 align-middle text-ink-700;
+  }
+  .table-base tbody tr:hover {
+    @apply bg-ink-50/60;
+  }
+}
+
+/* subtle blueprint grid used in hero + dark sections */
+.bg-blueprint {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.bg-blueprint-light {
+  background-image:
+    linear-gradient(to right, rgb(18 32 44 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(18 32 44 / 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  @apply rounded-xl bg-ink-100;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.6), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-float-slow, .animate-spin-slow { animation: none; }
+  .skeleton::after { animation: none; }
+}
