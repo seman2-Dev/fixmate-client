@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#13322b"/><stop offset="1" stop-color="#2c7a5f"/></linearGradient>
+    <pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity=".06"/></pattern>
+  </defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <rect width="800" height="500" fill="url(#p)"/>
+  <circle cx="680" cy="70" r="150" fill="#f9d56e" opacity=".13"/>
+  <circle cx="90" cy="440" r="120" fill="#ffffff" opacity=".06"/>
+  <ellipse cx="405" cy="462" rx="210" ry="14" fill="#000" opacity=".22"/>
+  
+    <rect x="190" y="150" width="430" height="130" rx="26" fill="#f7f4ee"/>
+    <rect x="215" y="228" width="380" height="14" rx="7" fill="#c8d2dc"/>
+    <rect x="215" y="250" width="380" height="10" rx="5" fill="#e3e8ed"/>
+    <circle cx="560" cy="188" r="7" fill="#f9d56e"/>
+    <path d="M250 320 q30 24 0 48 M330 320 q30 24 0 48 M410 320 q30 24 0 48 M490 320 q30 24 0 48" stroke="#f9d56e" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <g fill="#9fb0c0"><circle cx="270" cy="415" r="5"/><circle cx="350" cy="425" r="4"/><circle cx="450" cy="412" r="6"/></g>
+</svg>
