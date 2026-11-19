@@ -1,0 +1,116 @@
+"use client";
+
+import Link from "next/link";
+import { ClipboardList, CreditCard, Hammer, CheckCircle2 } from "lucide-react";
+import { ChartCard, DonutChart } from "@/components/charts";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { useDashboardUser } from "@/components/dashboard/user-context";
+import { BookingBadge } from "@/components/ui/badges";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatCard } from "@/components/ui/stat-card";
+import { useDB } from "@/lib/mock-db";
+import { formatDate, formatMoney } from "@/lib/utils";
+
+export default function CustomerOverview() {
+  const user = useDashboardUser();
+  const db = useDB();
+  const mine = db.bookings.filter((b) => b.customerEmail === user.email);
+  const active = mine.filter((b) => ["requested", "accepted", "in-progress"].includes(b.status));
+  const completed = mine.filter((b) => b.status === "completed");
+  const toPay = completed.filter((b) => b.paymentStatus === "unpaid");
+  const count = (s: string) => mine.filter((b) => b.status === s).length;
+
+  return (
+    <>
+      <PageHeader
+        title={`Hello, ${user.name.split(" ")[0]}`}
+        description="Here is where your repair jobs stand right now."
+        action={
+          <Link href="/services" className="btn btn-primary">
+            Book a repair
+          </Link>
+        }
+      />
+
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard label="Total Requests" value={mine.length} icon={ClipboardList} tone="blue" />
+        <StatCard label="Active Jobs" value={active.length} icon={Hammer} tone="amber" />
+        <StatCard label="Completed Jobs" value={completed.length} icon={CheckCircle2} tone="green" />
+      </div>
+
+      {toPay.length > 0 && (
+        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-2xl border border-brand-200 bg-brand-50 p-5 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-4">
+            <span className="grid size-11 place-items-center rounded-xl bg-brand-600 text-white">
+              <CreditCard className="size-5" />
+            </span>
+            <div>
+              <p className="font-bold text-ink-900">
+                {toPay.length} completed {toPay.length === 1 ? "job is" : "jobs are"} ready for payment
+              </p>
+              <p className="text-sm text-ink-600">
+                Total due {formatMoney(toPay.reduce((s, b) => s + b.finalAmount, 0))}
+              </p>
+            </div>
+          </div>
+          <Link href="/dashboard/customer/bookings" className="btn btn-primary">
+            Pay now
+          </Link>
+        </div>
+      )}
+
+      <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
+        <ChartCard title="Jobs by status" subtitle="All of your repair requests">
+          {mine.length === 0 ? (
+            <p className="py-10 text-center text-sm text-ink-500">No data yet.</p>
+          ) : (
+            <DonutChart
+              centerLabel="requests"
+              centerValue={mine.length}
+              data={[
+                { label: "Requested", value: count("requested"), color: "#3b82f6" },
+                { label: "Accepted", value: count("accepted"), color: "#6366f1" },
+                { label: "In Progress", value: count("in-progress"), color: "#f59e0b" },
+                { label: "Completed", value: count("completed"), color: "#10b981" },
+                { label: "Rejected", value: count("rejected"), color: "#ef4444" },
+                { label: "Cancelled", value: count("cancelled"), color: "#9ca3af" },
+              ]}
+            />
+          )}
+        </ChartCard>
+
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-ink-900">Recent requests</h2>
+            <Link href="/dashboard/customer/bookings" className="text-sm font-bold text-brand-700 hover:underline">
+              View all
+            </Link>
+          </div>
+          {mine.length === 0 ? (
+            <EmptyState
+              className="mt-4 border-0 bg-transparent py-8"
+              title="No repair requests yet"
+              message="Find a service and send your first request."
+              actionLabel="Browse services"
+              actionHref="/services"
+            />
+          ) : (
+            <ul className="mt-4 divide-y divide-ink-100">
+              {mine.slice(0, 5).map((b) => (
+                <li key={b._id} className="flex items-center justify-between gap-4 py-3.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-ink-900">{b.serviceTitle}</p>
+                    <p className="text-xs text-ink-500">
+                      {b.technicianName} · {formatDate(b.preferredDate)}
+                    </p>
+                  </div>
+                  <BookingBadge status={b.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </>
+  );
+}
