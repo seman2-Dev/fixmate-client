@@ -1,15 +1,19 @@
 # FixMate — Client (Next.js)
 
+<p align="center">
+  <img src="docs/fixmate-demo.gif" alt="FixMate demo — booking and tracking a repair" />
+</p>
+
 On-demand device & home appliance repair booking platform. Verified **technicians** list repair services, **customers** request repairs, track each job step by step and pay with Stripe only after completion, and **admins** moderate listings, users and revenue.
 
-> **Status: Phase 2 in progress.** Authentication and profile storage use BetterAuth with the MongoDB Atlas adapter (database `fixmatedb`). Services, bookings, payments and the admin user-role page still run against the client-side mock database (`src/lib/mock-db.ts`, persisted in `localStorage`) until the Express API is wired.
+> **Status: Phase 1 (frontend).** All pages, layouts and interactions are built and run against a client-side mock database (`src/lib/mock-db.ts`, persisted in `localStorage`). Phase 2 replaces it with the Express + MongoDB server, BetterAuth, JWT, ImgBB and Stripe.
 
 - **Live URL:** _to be added after deployment_
 - **Server repository:** _Phase 2_
 
-## Demo credentials
+## Demo credentials (mock, Phase 1)
 
-All demo accounts are seeded into MongoDB Atlas (`users` collection) and use the password `FixMate1`.
+All demo accounts use the password `FixMate1`.
 
 | Role | Email |
 | --- | --- |
@@ -18,6 +22,16 @@ All demo accounts are seeded into MongoDB Atlas (`users` collection) and use the
 | Customer | `ayesha@fixmate.dev` (also `tanvir@fixmate.dev`, `sadia@fixmate.dev`) |
 
 Payment test card (mock checkout, same as Stripe test mode): `4242 4242 4242 4242`, any future date, any CVC.
+
+## Design system
+
+"Workshop Warm": warm paper surfaces, deep ink navy and one accessible orange (`--primary` #c2410c). Tokens are shadcn semantic variables in `src/app/globals.css` (`--primary`, `--card`, `--sidebar-*` …) plus the `ink-*` / `brand-*` scales. Status colours: Requested blue, Accepted indigo, In Progress amber, Completed green, Rejected red, Cancelled gray.
+
+## Extras
+
+- Dark theme (toggle in navbar and dashboard header, saved in `localStorage`, follows the OS on first visit)
+- `Ctrl/⌘ + K` command palette for pages, categories, services and actions
+- Sortable, paginated data tables; all tables become labelled cards on phones
 
 ## Key features
 
@@ -35,41 +49,30 @@ Payment test card (mock checkout, same as Stripe test mode): `4242 4242 4242 424
 
 ## Tech and packages
 
-Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, `lucide-react` (icons), `sonner` (toasts), `clsx` + `tailwind-merge`, `@fontsource-variable/bricolage-grotesque` and `@fontsource-variable/figtree` (self-hosted fonts). Charts are hand-written SVG (no chart dependency).
+Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, **shadcn/ui** (new-york style, hand-added components in `src/components/ui` on `radix-ui` + `class-variance-authority`), `lucide-react` (icons), `cmdk` (command palette), `@tanstack/react-table` v8 (sortable, paginated tables), `sonner` (toasts), `clsx` + `tailwind-merge`, `@fontsource-variable/bricolage-grotesque` and `@fontsource-variable/figtree` (self-hosted fonts). Charts are hand-written SVG (no chart dependency). All animation is native CSS (transitions/keyframes + one IntersectionObserver reveal helper) and respects `prefers-reduced-motion`; no animation library.
 
-Auth/storage: `better-auth` (email/password + MongoDB adapter), `mongodb` (Atlas driver), `tsx` (seed script runner). ImgBB is used for image uploads when `NEXT_PUBLIC_IMGBB_API_KEY` is set.
-
-Phase 2 still adds: Express + JWT API, Stripe checkout/webhook.
+Phase 2 adds: BetterAuth (MongoDB adapter), Stripe, ImgBB.
 
 ## Getting started
 
 ```bash
 npm install
-npm run seed     # creates the demo accounts in MongoDB Atlas (safe to re-run)
 npm run dev      # http://localhost:3000
 npm run build && npm start
 ```
 
 ### Environment variables
 
-A populated `.env` is required (never committed; `.env.example` is the template):
-
-- `MONGODB_URI` — Atlas connection string; the path must end in `/fixmatedb` (an empty path falls back to the `test` database).
-- `BETTER_AUTH_SECRET` — BetterAuth signing secret.
-- `BETTER_AUTH_URL` — must match the running origin (e.g. `http://localhost:3000`).
-- `NEXT_PUBLIC_IMGBB_API_KEY` — enables ImgBB uploads; without it images fall back to data URLs.
-- `NEXT_PUBLIC_API_URL` — reserved for the Express API.
+Phase 1 needs none. Phase 2 will use `.env.local` (never committed); see `.env.example`.
 
 ## Project structure
 
 ```
 src/app/(public)   Home, services, service details, about, sign-in, sign-up
-src/app/api/auth   BetterAuth route handler (MongoDB adapter)
 src/app/dashboard  customer / technician / admin / profile (guarded layout)
 src/app/payment    checkout (Phase 1 stand-in for Stripe), success, cancel
 src/components     ui primitives, layout, home, services, dashboard, charts
-src/lib            auth + mongo setup, types, mock-db, services-query, seed data
-src/scripts        seed script for the demo Atlas accounts
+src/lib            types, mock-db, services-query, seed data, helpers
 ```
 
 ## Phase 2 swap points
