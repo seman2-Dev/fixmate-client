@@ -11,9 +11,10 @@ export const metadata: Metadata = {
 export default function ServicesPage() {
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-ink-900 py-14 text-white">
-        <div className="bg-blueprint absolute inset-0 -z-10" aria-hidden />
-        <div className="container-page">
+      <section className="relative isolate overflow-hidden bg-ink-900 py-14 text-white sm:py-16">
+        <div className="bg-blueprint absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,black,transparent)]" aria-hidden />
+        <div className="absolute -top-24 right-0 -z-10 size-80 rounded-full bg-brand-600/25 blur-3xl" aria-hidden />
+        <div className="enter container-page">
           <span className="section-eyebrow !text-brand-300">Service catalogue</span>
           <h1 className="text-4xl font-extrabold sm:text-5xl">Browse repair services</h1>
           <p className="mt-4 max-w-2xl text-lg text-ink-200">
@@ -23,7 +24,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <div className="container-page py-10">
+      <div className="container-page pt-6 pb-16">
         <Suspense
           fallback={
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

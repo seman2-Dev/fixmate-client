@@ -5,6 +5,24 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDB } from "@/lib/mock-db";
 import { formatDate, formatMoney } from "@/lib/utils";
+import type { Payment } from "@/lib/types";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
+
+const columns: ColumnDef<Payment>[] = [
+  { id: "Customer", header: "Customer", accessorFn: (p) => p.customerName, cell: ({ row }) => <span className="font-bold text-foreground">{row.original.customerName}</span> },
+  { id: "Technician", header: "Technician", accessorFn: (p) => p.technicianName },
+  { id: "Service", header: "Service", accessorFn: (p) => p.serviceTitle, meta: { className: "max-w-[14rem]" } },
+  { id: "Amount", header: "Amount", accessorFn: (p) => p.amount, cell: ({ row }) => <span className="font-semibold text-foreground">{formatMoney(row.original.amount)}</span> },
+  {
+    id: "Transaction ID",
+    header: "Transaction ID",
+    enableSorting: false,
+    accessorFn: (p) => p.transactionId,
+    cell: ({ row }) => <code className="rounded bg-secondary px-2 py-1 font-mono text-xs text-foreground/75">{row.original.transactionId}</code>,
+  },
+  { id: "Paid on", header: "Paid on", accessorFn: (p) => +new Date(p.paidAt), cell: ({ row }) => <span className="whitespace-nowrap">{formatDate(row.original.paidAt)}</span> },
+];
 
 export default function AdminTransactionsPage() {
   const db = useDB();
@@ -29,34 +47,7 @@ export default function AdminTransactionsPage() {
       {rows.length === 0 ? (
         <EmptyState icon={Receipt} title="No transactions yet" message="Payments appear here after customers pay for completed jobs." />
       ) : (
-        <div className="table-wrap">
-          <table className="table-base min-w-[960px]">
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Technician</th>
-                <th>Service</th>
-                <th>Amount</th>
-                <th>Transaction ID</th>
-                <th>Paid on</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((p) => (
-                <tr key={p._id}>
-                  <td className="font-bold text-ink-900">{p.customerName}</td>
-                  <td>{p.technicianName}</td>
-                  <td className="max-w-[14rem]">{p.serviceTitle}</td>
-                  <td className="font-semibold text-ink-900">{formatMoney(p.amount)}</td>
-                  <td>
-                    <code className="rounded bg-ink-50 px-2 py-1 font-mono text-xs text-ink-600">{p.transactionId}</code>
-                  </td>
-                  <td className="whitespace-nowrap">{formatDate(p.paidAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={rows} initialSort={[{ id: "Paid on", desc: true }]} />
       )}
     </>
   );

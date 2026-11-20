@@ -7,6 +7,12 @@ import { toast } from "sonner";
 import type { ServiceInput } from "@/lib/mock-db";
 import { CATEGORIES, SERVICE_MODES, type Category, type ServiceMode, type User } from "@/lib/types";
 import { uploadImage } from "@/lib/upload-image";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Errors {
   title?: string;
@@ -85,63 +91,63 @@ export function ServiceForm({
   return (
     <form onSubmit={submit} noValidate className="grid gap-5 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <label htmlFor="sf-title" className="field-label">Service title</label>
-        <input id="sf-title" className="field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. iPhone Screen Replacement" aria-invalid={!!errors.title} />
+        <Label htmlFor="sf-title">Service title</Label>
+        <Input id="sf-title"  value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. iPhone Screen Replacement" aria-invalid={!!errors.title} />
         {errors.title && <p className="field-error">{errors.title}</p>}
       </div>
 
       <div>
-        <label htmlFor="sf-category" className="field-label">Category</label>
-        <select id="sf-category" className="field cursor-pointer" value={category} onChange={(e) => setCategory(e.target.value as Category)} aria-invalid={!!errors.category}>
+        <Label htmlFor="sf-category">Category</Label>
+        <NativeSelect id="sf-category" className="cursor-pointer" value={category} onChange={(e) => setCategory(e.target.value as Category)} aria-invalid={!!errors.category}>
           <option value="">Select a category</option>
           {CATEGORIES.map((c) => (
             <option key={c}>{c}</option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.category && <p className="field-error">{errors.category}</p>}
       </div>
 
       <div>
-        <label htmlFor="sf-price" className="field-label">Base price (USD)</label>
-        <input id="sf-price" type="number" min="0" step="0.01" inputMode="decimal" className="field" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="e.g. 45" aria-invalid={!!errors.basePrice} />
+        <Label htmlFor="sf-price">Base price (USD)</Label>
+        <Input id="sf-price" type="number" min="0" step="0.01" inputMode="decimal"  value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="e.g. 45" aria-invalid={!!errors.basePrice} />
         {errors.basePrice && <p className="field-error">{errors.basePrice}</p>}
       </div>
 
       <div>
-        <label htmlFor="sf-duration" className="field-label">Estimated duration</label>
-        <input id="sf-duration" className="field" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 2-3 hours" aria-invalid={!!errors.estimatedDuration} />
+        <Label htmlFor="sf-duration">Estimated duration</Label>
+        <Input id="sf-duration"  value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 2-3 hours" aria-invalid={!!errors.estimatedDuration} />
         {errors.estimatedDuration && <p className="field-error">{errors.estimatedDuration}</p>}
       </div>
 
       <div>
-        <label htmlFor="sf-mode" className="field-label">Service mode</label>
-        <select id="sf-mode" className="field cursor-pointer" value={mode} onChange={(e) => setMode(e.target.value as ServiceMode)}>
+        <Label htmlFor="sf-mode">Service mode</Label>
+        <NativeSelect id="sf-mode" className="cursor-pointer" value={mode} onChange={(e) => setMode(e.target.value as ServiceMode)}>
           {SERVICE_MODES.map((m) => (
             <option key={m}>{m}</option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
 
       <div className="sm:col-span-2">
-        <label htmlFor="sf-area" className="field-label">Service area</label>
-        <input id="sf-area" className="field" value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. Dhanmondi, Dhaka" aria-invalid={!!errors.serviceArea} />
+        <Label htmlFor="sf-area">Service area</Label>
+        <Input id="sf-area"  value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. Dhanmondi, Dhaka" aria-invalid={!!errors.serviceArea} />
         {errors.serviceArea && <p className="field-error">{errors.serviceArea}</p>}
       </div>
 
       <div className="sm:col-span-2">
-        <label htmlFor="sf-desc" className="field-label">Description</label>
-        <textarea id="sf-desc" rows={5} className="field resize-y" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does the service include? Which devices and brands? Any warranty?" aria-invalid={!!errors.description} />
+        <Label htmlFor="sf-desc">Description</Label>
+        <Textarea id="sf-desc" rows={5} className="resize-y" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does the service include? Which devices and brands? Any warranty?" aria-invalid={!!errors.description} />
         {errors.description && <p className="field-error">{errors.description}</p>}
       </div>
 
       <div className="grid gap-5 sm:col-span-2 sm:grid-cols-2">
         <div>
-          <label htmlFor="sf-tname" className="field-label">Technician name</label>
-          <input id="sf-tname" className="field" value={tech.name} readOnly disabled />
+          <Label htmlFor="sf-tname">Technician name</Label>
+          <Input id="sf-tname"  value={tech.name} readOnly disabled />
         </div>
         <div>
-          <label htmlFor="sf-temail" className="field-label">Technician email</label>
-          <input id="sf-temail" className="field" value={tech.email} readOnly disabled />
+          <Label htmlFor="sf-temail">Technician email</Label>
+          <Input id="sf-temail"  value={tech.email} readOnly disabled />
         </div>
       </div>
 
@@ -149,29 +155,29 @@ export function ServiceForm({
         <span className="field-label">Service image</span>
         <input ref={fileRef} id="sf-image" type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="grid aspect-[16/10] w-full max-w-[240px] shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-dashed border-ink-200 bg-ink-50">
+          <div className="grid aspect-[16/10] w-full max-w-[240px] shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-secondary">
             {image ? <img src={image} alt="Service preview" className="size-full object-cover" /> : <ImagePlus className="size-8 text-ink-300" />}
           </div>
           <div>
-            <label htmlFor="sf-image" className="btn btn-outline cursor-pointer">
+            <label htmlFor="sf-image" className={cn(buttonVariants({ variant: "outline" }), "cursor-pointer")}>
               {uploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
               {image ? "Replace image" : "Upload image"}
             </label>
-            <p className="mt-2 text-xs text-ink-400">JPG, PNG or WebP up to 5MB. Landscape works best.</p>
+            <p className="mt-2 text-xs text-muted-foreground">JPG, PNG or WebP up to 5MB. Landscape works best.</p>
           </div>
         </div>
         {errors.image && <p className="field-error">{errors.image}</p>}
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-ink-100 pt-5 sm:col-span-2 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:col-span-2 sm:flex-row sm:justify-end">
         {onCancel && (
-          <button type="button" className="btn btn-outline" onClick={onCancel}>
+          <Button variant="outline" type="button" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         )}
-        <button type="submit" disabled={uploading} className="btn btn-primary">
+        <Button type="submit" disabled={uploading}>
           {submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

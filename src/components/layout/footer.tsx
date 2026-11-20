@@ -14,8 +14,9 @@ const SOCIAL = [
 export function Footer() {
   return (
     <footer className="bg-ink-950 text-ink-300">
-      <div className="bg-blueprint">
-        <div className="container-page grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
+      <div className="bg-blueprint relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute -top-40 -right-24 size-96 rounded-full bg-brand-600/20 blur-3xl" />
+        <div className="container-page relative grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
           <div>
             <Logo tone="light" />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-ink-300">
@@ -30,7 +31,7 @@ export function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="grid size-10 place-items-center rounded-xl bg-white/10 text-white transition hover:bg-brand-600"
+                    className="grid size-10 place-items-center rounded-xl bg-white/10 text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-600"
                   >
                     <Icon className="size-[18px]" />
                   </a>
@@ -49,7 +50,7 @@ export function Footer() {
                 ["Become a Technician", "/sign-up"],
               ].map(([label, href]) => (
                 <li key={href}>
-                  <Link href={href} className="transition hover:text-white">
+                  <Link href={href} className="inline-block transition-all duration-200 hover:translate-x-0.5 hover:text-white">
                     {label}
                   </Link>
                 </li>
@@ -64,7 +65,7 @@ export function Footer() {
                 <li key={c}>
                   <Link
                     href={`/services?category=${encodeURIComponent(c)}`}
-                    className="transition hover:text-white"
+                    className="inline-block transition-all duration-200 hover:translate-x-0.5 hover:text-white"
                   >
                     {c}
                   </Link>
@@ -78,13 +79,13 @@ export function Footer() {
             <ul className="mt-5 space-y-4 text-sm">
               <li className="flex items-start gap-3">
                 <Mail className="mt-0.5 size-4 shrink-0 text-brand-400" />
-                <a href="mailto:support@fixmate.dev" className="transition hover:text-white">
+                <a href="mailto:support@fixmate.dev" className="inline-block transition-all duration-200 hover:translate-x-0.5 hover:text-white">
                   support@fixmate.dev
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="mt-0.5 size-4 shrink-0 text-brand-400" />
-                <a href="tel:+8801700000000" className="transition hover:text-white">
+                <a href="tel:+8801700000000" className="inline-block transition-all duration-200 hover:translate-x-0.5 hover:text-white">
                   +880 1700-000000
                 </a>
               </li>
@@ -97,7 +98,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="container-page flex flex-col items-center justify-between gap-3 py-6 text-xs text-ink-400 sm:flex-row">
+        <div className="container-page flex flex-col items-center justify-between gap-3 py-6 text-xs text-ink-300 sm:flex-row">
           <p>© {new Date().getFullYear()} FixMate. All rights reserved.</p>
           <p>Pay after service · Verified technicians · Trackable jobs</p>
         </div>

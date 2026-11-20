@@ -3,7 +3,7 @@ import { Logo } from "@/components/ui/logo";
 
 export default function PaymentLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate flex min-h-dvh flex-col bg-paper">
+    <div className="relative isolate flex min-h-dvh flex-col bg-background">
       <div className="bg-blueprint-light absolute inset-0 -z-10" aria-hidden />
       <header className="container-page flex h-[72px] items-center">
         <Logo />

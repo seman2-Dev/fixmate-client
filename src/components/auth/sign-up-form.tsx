@@ -6,11 +6,13 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, UserRound, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { PasswordInput } from "@/components/auth/password-input";
-import { authClient } from "@/lib/auth-client";
-import { dashboardPathFor } from "@/lib/mock-db";
+import { dashboardPathFor, signUp } from "@/lib/mock-db";
 import { safeRedirect } from "@/lib/redirect";
 import { useSession } from "@/lib/use-session";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Errors {
   name?: string;
@@ -67,39 +69,31 @@ export function SignUpForm() {
     return e;
   }
 
-  async function onSubmit(ev: FormEvent) {
+  function onSubmit(ev: FormEvent) {
     ev.preventDefault();
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length) return;
 
     setBusy(true);
-    const { data, error } = await authClient.signUp.email({
-      name: name.trim(),
-      email: email.trim(),
-      password,
-      role,
-    });
-    if (error) {
+    // Phase 2: BetterAuth signUp.email({ name, email, password, role })
+    const res = signUp({ name, email, password, role });
+    if (!res.ok) {
       setBusy(false);
-      toast.error(error.message || "Could not create your account");
+      toast.error(res.error);
       return;
     }
-    toast.success(`Welcome to FixMate, ${(data?.user.name ?? name).split(" ")[0]}!`);
-    router.replace(
-      safeRedirect(params.get("redirect")) ??
-        dashboardPathFor((data?.user.role as "customer" | "technician" | "admin") ?? role),
-    );
-    router.refresh();
+    toast.success(`Welcome to FixMate, ${res.data.name.split(" ")[0]}!`);
+    router.replace(safeRedirect(params.get("redirect")) ?? dashboardPathFor(res.data.role));
   }
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
       <div>
-        <label htmlFor="su-name" className="field-label">Full name</label>
-        <input
+        <Label htmlFor="su-name">Full name</Label>
+        <Input
           id="su-name"
-          className="field"
+          
           autoComplete="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -110,11 +104,11 @@ export function SignUpForm() {
       </div>
 
       <div>
-        <label htmlFor="su-email" className="field-label">Email</label>
-        <input
+        <Label htmlFor="su-email">Email</Label>
+        <Input
           id="su-email"
           type="email"
-          className="field"
+          
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -125,7 +119,7 @@ export function SignUpForm() {
       </div>
 
       <div>
-        <label htmlFor="su-password" className="field-label">Password</label>
+        <Label htmlFor="su-password">Password</Label>
         <PasswordInput
           id="su-password"
           autoComplete="new-password"
@@ -137,7 +131,7 @@ export function SignUpForm() {
         {errors.password ? (
           <p className="field-error">{errors.password}</p>
         ) : (
-          <p className="mt-1.5 text-xs text-ink-400">At least 6 characters with one uppercase and one lowercase letter.</p>
+          <p className="mt-1.5 text-xs text-muted-foreground">At least 6 characters with one uppercase and one lowercase letter.</p>
         )}
       </div>
 
@@ -148,8 +142,8 @@ export function SignUpForm() {
             <label
               key={r.value}
               className={cn(
-                "relative flex cursor-pointer flex-col gap-2 rounded-2xl border-2 bg-white p-4 transition",
-                role === r.value ? "border-brand-600 bg-brand-50/60" : "border-ink-100 hover:border-ink-300",
+                "relative flex cursor-pointer flex-col gap-2 rounded-2xl border-2 bg-card p-4 transition-[border-color,background-color,transform] duration-200 has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/40 active:scale-[0.99]",
+                role === r.value ? "border-brand-600 bg-brand-50/60" : "border-border hover:border-input",
               )}
             >
               <input
@@ -163,28 +157,28 @@ export function SignUpForm() {
               <span
                 className={cn(
                   "grid size-9 place-items-center rounded-xl",
-                  role === r.value ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-600",
+                  role === r.value ? "bg-brand-600 text-white" : "bg-secondary text-foreground/75",
                 )}
               >
                 <r.icon className="size-5" />
               </span>
-              <span className="text-sm font-extrabold text-ink-900">{r.title}</span>
-              <span className="text-xs leading-snug text-ink-500">{r.text}</span>
+              <span className="text-sm font-extrabold text-foreground">{r.title}</span>
+              <span className="text-xs leading-snug text-muted-foreground">{r.text}</span>
             </label>
           ))}
         </div>
       </fieldset>
 
-      <button type="submit" disabled={busy} className="btn btn-primary btn-lg w-full">
+      <Button size="lg" className="w-full" type="submit" disabled={busy}>
         {busy && <Loader2 className="size-4 animate-spin" />}
         Create Account
-      </button>
+      </Button>
 
-      <p className="text-center text-sm text-ink-500">
+      <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link
           href={params.get("redirect") ? `/sign-in?redirect=${encodeURIComponent(params.get("redirect")!)}` : "/sign-in"}
-          className="font-bold text-brand-700 hover:underline"
+          className="font-bold text-brand-700 dark:text-brand-300 hover:underline"
         >
           Sign In
         </Link>

@@ -23,7 +23,7 @@ export function Logo({
       <span
         className={cn(
           "font-display text-xl font-extrabold tracking-tight",
-          tone === "dark" ? "text-ink-900" : "text-white",
+          tone === "dark" ? "text-foreground" : "text-white",
         )}
       >
         Fix<span className="text-brand-500">Mate</span>

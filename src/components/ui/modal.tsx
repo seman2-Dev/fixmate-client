@@ -1,8 +1,34 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
-import { AlertTriangle, X } from "lucide-react";
+import type { ReactNode } from "react";
+import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+/** Focus the element marked data-autofocus (falls back to Radix default). */
+function focusMarked(e: Event) {
+  const el = (e.currentTarget as HTMLElement | null)?.querySelector<HTMLElement>("[data-autofocus]");
+  if (el) {
+    e.preventDefault();
+    el.focus();
+  }
+}
 
 export function Modal({
   open,
@@ -21,92 +47,24 @@ export function Modal({
   footer?: ReactNode;
   size?: "sm" | "md" | "lg";
 }) {
-  const titleId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.activeElement as HTMLElement | null;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "Tab" && panelRef.current) {
-        const focusables = panelRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        if (!focusables.length) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const t = setTimeout(() => {
-      const target =
-        panelRef.current?.querySelector<HTMLElement>("[data-autofocus]") ??
-        panelRef.current?.querySelector<HTMLElement>("input, select, textarea, button");
-      target?.focus();
-    }, 30);
-    return () => {
-      clearTimeout(t);
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-      previous?.focus?.();
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4">
-      <div
-        className="absolute inset-0 bg-ink-950/60 backdrop-blur-[2px]"
-        onClick={onClose}
-        aria-hidden
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className={cn(
-          "relative flex max-h-[92dvh] w-full flex-col rounded-t-3xl bg-white shadow-pop sm:rounded-3xl",
-          size === "sm" && "sm:max-w-md",
-          size === "md" && "sm:max-w-xl",
-          size === "lg" && "sm:max-w-3xl",
-        )}
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent
+        onOpenAutoFocus={focusMarked}
+        className={cn(size === "sm" && "sm:max-w-md", size === "md" && "sm:max-w-xl", size === "lg" && "sm:max-w-3xl")}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-ink-100 px-6 py-5">
-          <div>
-            <h2 id={titleId} className="text-xl font-extrabold text-ink-900">
-              {title}
-            </h2>
-            {description && <p className="mt-1 text-sm text-ink-500">{description}</p>}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close dialog"
-            className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-lg text-ink-500 transition hover:bg-ink-100"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
-        <div className="overflow-y-auto px-6 py-5">{children}</div>
-        {footer && (
-          <div className="flex flex-col-reverse gap-2 border-t border-ink-100 px-6 py-4 sm:flex-row sm:justify-end">
-            {footer}
-          </div>
-        )}
-      </div>
-    </div>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : (
+            <DialogDescription className="sr-only">{title}</DialogDescription>
+          )}
+        </DialogHeader>
+        <DialogBody>{children}</DialogBody>
+        {footer && <DialogFooter>{footer}</DialogFooter>}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -132,38 +90,35 @@ export function ConfirmDialog({
   loading?: boolean;
 }) {
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={title}
-      size="sm"
-      footer={
-        <>
-          <button type="button" className="btn btn-outline" onClick={onClose} data-autofocus>
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            className={cn("btn", tone === "danger" ? "btn-danger" : "btn-primary")}
-            onClick={onConfirm}
-            disabled={loading}
+    <AlertDialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <AlertDialogContent onOpenAutoFocus={focusMarked}>
+        <div className="flex gap-4 px-6 pt-6">
+          <span
+            className={cn(
+              "grid size-11 shrink-0 place-items-center rounded-full",
+              tone === "danger" ? "bg-red-100 dark:bg-red-500/15 text-red-600" : "bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300",
+            )}
           >
+            <AlertTriangle className="size-5" />
+          </span>
+          <div>
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="mt-1.5">{message}</div>
+            </AlertDialogDescription>
+          </div>
+        </div>
+        <div className="flex flex-col-reverse gap-2 px-6 py-5 sm:flex-row sm:justify-end">
+          <AlertDialogCancel asChild>
+            <Button variant="outline" data-autofocus>
+              {cancelLabel}
+            </Button>
+          </AlertDialogCancel>
+          <Button variant={tone === "danger" ? "destructive" : "default"} onClick={onConfirm} disabled={loading}>
             {confirmLabel}
-          </button>
-        </>
-      }
-    >
-      <div className="flex gap-4">
-        <span
-          className={cn(
-            "grid size-11 shrink-0 place-items-center rounded-full",
-            tone === "danger" ? "bg-red-100 text-red-600" : "bg-brand-100 text-brand-700",
-          )}
-        >
-          <AlertTriangle className="size-5" />
-        </span>
-        <div className="text-sm leading-relaxed text-ink-600">{message}</div>
-      </div>
-    </Modal>
+          </Button>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

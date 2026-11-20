@@ -6,10 +6,12 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PasswordInput } from "@/components/auth/password-input";
-import { authClient } from "@/lib/auth-client";
-import { DEMO_PASSWORD, dashboardPathFor } from "@/lib/mock-db";
+import { DEMO_PASSWORD, dashboardPathFor, signIn } from "@/lib/mock-db";
 import { safeRedirect } from "@/lib/redirect";
 import { useSession } from "@/lib/use-session";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Errors {
   email?: string;
@@ -37,7 +39,7 @@ export function SignInForm() {
     if (ready && user && !busy) router.replace(redirect ?? dashboardPathFor(user.role));
   }, [ready, user, busy, redirect, router]);
 
-  async function onSubmit(ev: FormEvent) {
+  function onSubmit(ev: FormEvent) {
     ev.preventDefault();
     const e: Errors = {};
     if (!email.trim()) e.email = "Email is required";
@@ -47,32 +49,25 @@ export function SignInForm() {
     if (Object.keys(e).length) return;
 
     setBusy(true);
-    const { data, error } = await authClient.signIn.email({
-      email: email.trim(),
-      password,
-      rememberMe: true,
-    });
-    if (error) {
+    // Phase 2: BetterAuth signIn.email({ email, password })
+    const res = signIn(email, password);
+    if (!res.ok) {
       setBusy(false);
-      toast.error(error.message || "Invalid email or password");
+      toast.error(res.error);
       return;
     }
-    toast.success(`Welcome back, ${(data?.user.name ?? "").split(" ")[0] || "friend"}!`);
-    router.replace(
-      redirect ??
-        dashboardPathFor((data?.user.role as "customer" | "technician" | "admin") ?? "customer"),
-    );
-    router.refresh();
+    toast.success(`Welcome back, ${res.data.name.split(" ")[0]}!`);
+    router.replace(redirect ?? dashboardPathFor(res.data.role));
   }
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
       <div>
-        <label htmlFor="si-email" className="field-label">Email</label>
-        <input
+        <Label htmlFor="si-email">Email</Label>
+        <Input
           id="si-email"
           type="email"
-          className="field"
+          
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -83,7 +78,7 @@ export function SignInForm() {
       </div>
 
       <div>
-        <label htmlFor="si-password" className="field-label">Password</label>
+        <Label htmlFor="si-password">Password</Label>
         <PasswordInput
           id="si-password"
           autoComplete="current-password"
@@ -95,29 +90,29 @@ export function SignInForm() {
         {errors.password && <p className="field-error">{errors.password}</p>}
       </div>
 
-      <button type="submit" disabled={busy} className="btn btn-primary btn-lg w-full">
+      <Button size="lg" className="w-full" type="submit" disabled={busy}>
         {busy && <Loader2 className="size-4 animate-spin" />}
         Sign In
-      </button>
+      </Button>
 
-      <p className="text-center text-sm text-ink-500">
+      <p className="text-center text-sm text-muted-foreground">
         New to FixMate?{" "}
         <Link
           href={redirect ? `/sign-up?redirect=${encodeURIComponent(redirect)}` : "/sign-up"}
-          className="font-bold text-brand-700 hover:underline"
+          className="font-bold text-brand-700 dark:text-brand-300 hover:underline"
         >
           Create an account
         </Link>
       </p>
 
-      <div className="rounded-2xl border border-dashed border-ink-200 bg-white p-4">
-        <p className="text-xs font-bold uppercase tracking-wider text-ink-400">Demo accounts</p>
+      <div className="rounded-2xl border border-dashed border-border bg-card p-4">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Demo accounts (Phase 1 mock)</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {DEMO.map((d) => (
-            <button
+            <Button variant="outline" size="sm"
               key={d.email}
               type="button"
-              className="btn btn-outline btn-sm"
+             
               onClick={() => {
                 setEmail(d.email);
                 setPassword(DEMO_PASSWORD);
@@ -125,12 +120,12 @@ export function SignInForm() {
               }}
             >
               {d.label}
-            </button>
+            </Button>
           ))}
         </div>
-        <p className="mt-3 text-xs text-ink-400">
+        <p className="mt-3 text-xs text-muted-foreground">
           Tap a role to fill the form. Password for all demo accounts:{" "}
-          <code className="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-ink-700">{DEMO_PASSWORD}</code>
+          <code className="rounded bg-secondary px-1.5 py-0.5 font-mono text-foreground/85">{DEMO_PASSWORD}</code>
         </p>
       </div>
     </form>

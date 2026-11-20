@@ -4,10 +4,18 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { PackageSearch, Search, SlidersHorizontal, X } from "lucide-react";
 import { ServiceCard, ServiceCardSkeleton } from "@/components/service-card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDB, useHydrated } from "@/lib/mock-db";
 import { queryServices } from "@/lib/services-query";
 import { CATEGORIES, SERVICE_MODES, type ServiceQuery } from "@/lib/types";
+
+const ALL = "__all__";
 
 const SORTS = [
   { value: "newest", label: "Newest" },
@@ -62,103 +70,96 @@ export function ServicesBrowser() {
 
   return (
     <>
-      <form
-        role="search"
-        onSubmit={(e) => e.preventDefault()}
-        className="card sticky top-[84px] z-20 grid gap-3 p-4 sm:p-5 md:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_auto]"
-      >
-        <div className="relative md:col-span-2 lg:col-span-1">
-          <label htmlFor="svc-search" className="sr-only">
-            Search by title or category
-          </label>
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-          <input
-            key={q}
-            id="svc-search"
-            type="search"
-            defaultValue={q}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search by title or category"
-            className="field pl-10"
-          />
-        </div>
+      <Card className="sticky top-[84px] z-20 gap-0 p-4 shadow-lift sm:p-5">
+        <form role="search" onSubmit={(e) => e.preventDefault()} className="grid gap-3 md:grid-cols-3 lg:grid-cols-[1.6fr_1fr_1fr_1fr_auto]">
+          <div className="relative md:col-span-3 lg:col-span-1">
+            <Label htmlFor="svc-search" className="sr-only">
+              Search by title or category
+            </Label>
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              key={q}
+              id="svc-search"
+              type="search"
+              defaultValue={q}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder="Search by title or category"
+              className="pl-10"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="svc-category" className="sr-only">
-            Category
-          </label>
-          <select
-            id="svc-category"
-            value={category}
-            onChange={(e) => setParam("category", e.target.value)}
-            className="field cursor-pointer"
-          >
-            <option value="">All categories</option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div>
+            <Label htmlFor="svc-category" className="sr-only">
+              Category
+            </Label>
+            <Select value={category || ALL} onValueChange={(v) => setParam("category", v === ALL ? "" : v)}>
+              <SelectTrigger id="svc-category" aria-label="Category">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All categories</SelectItem>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div>
-          <label htmlFor="svc-mode" className="sr-only">
-            Service mode
-          </label>
-          <select
-            id="svc-mode"
-            value={mode}
-            onChange={(e) => setParam("mode", e.target.value)}
-            className="field cursor-pointer"
-          >
-            <option value="">Any service mode</option>
-            {SERVICE_MODES.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div>
+            <Label htmlFor="svc-mode" className="sr-only">
+              Service mode
+            </Label>
+            <Select value={mode || ALL} onValueChange={(v) => setParam("mode", v === ALL ? "" : v)}>
+              <SelectTrigger id="svc-mode" aria-label="Service mode">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Any service mode</SelectItem>
+                {SERVICE_MODES.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div>
-          <label htmlFor="svc-sort" className="sr-only">
-            Sort by
-          </label>
-          <select
-            id="svc-sort"
-            value={sort}
-            onChange={(e) => setParam("sort", e.target.value)}
-            className="field cursor-pointer"
-          >
-            {SORTS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div>
+            <Label htmlFor="svc-sort" className="sr-only">
+              Sort by
+            </Label>
+            <Select value={sort} onValueChange={(v) => setParam("sort", v)}>
+              <SelectTrigger id="svc-sort" aria-label="Sort by">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SORTS.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <button
-          type="button"
-          onClick={clearAll}
-          disabled={!hasFilters}
-          className="btn btn-outline md:col-span-2 lg:col-span-1"
-        >
-          <X className="size-4" /> Clear
-        </button>
-      </form>
+          <Button type="button" variant="outline" onClick={clearAll} disabled={!hasFilters} className="h-11 md:col-span-3 lg:col-span-1">
+            <X /> Clear
+          </Button>
+        </form>
+      </Card>
 
       <div className="mb-6 mt-8 flex flex-wrap items-center justify-between gap-3">
-        <p className="flex items-center gap-2 text-sm font-semibold text-ink-600" aria-live="polite">
-          <SlidersHorizontal className="size-4 text-brand-600" />
+        <p className="flex items-center gap-2 text-sm font-semibold text-foreground/75" aria-live="polite">
+          <SlidersHorizontal className="size-4 text-primary" />
           {ready
             ? `${results.length} ${results.length === 1 ? "service" : "services"} found`
             : "Loading services…"}
           {category && (
-            <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700">
+            <Badge variant="outline" className="bg-brand-50 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 ring-brand-200 dark:ring-brand-400/30">
               {category}
-            </span>
+            </Badge>
           )}
         </p>
       </div>
@@ -179,8 +180,10 @@ export function ServicesBrowser() {
         />
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {results.map((s) => (
-            <ServiceCard key={s._id} service={s} />
+          {results.map((s, i) => (
+            <div key={s._id} className="page-enter h-full" style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}>
+              <ServiceCard service={s} />
+            </div>
           ))}
         </div>
       )}

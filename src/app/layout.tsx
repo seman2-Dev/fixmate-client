@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Toaster } from "sonner";
+import { CommandPalette } from "@/components/command-palette";
+import { ThemedToaster, THEME_INIT_SCRIPT } from "@/components/theme";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,10 +19,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">
-        {children}
-        <Toaster position="top-right" richColors closeButton toastOptions={{ duration: 3500 }} />
+        <TooltipProvider>{children}</TooltipProvider>
+        <CommandPalette />
+        <ThemedToaster />
       </body>
     </html>
   );

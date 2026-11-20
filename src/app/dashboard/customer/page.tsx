@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
 import { useDB } from "@/lib/mock-db";
 import { formatDate, formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export default function CustomerOverview() {
   const user = useDashboardUser();
@@ -26,9 +28,11 @@ export default function CustomerOverview() {
         title={`Hello, ${user.name.split(" ")[0]}`}
         description="Here is where your repair jobs stand right now."
         action={
-          <Link href="/services" className="btn btn-primary">
+          <Button asChild>
+<Link href="/services">
             Book a repair
           </Link>
+</Button>
         }
       />
 
@@ -39,30 +43,32 @@ export default function CustomerOverview() {
       </div>
 
       {toPay.length > 0 && (
-        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-2xl border border-brand-200 bg-brand-50 p-5 sm:flex-row sm:items-center">
+        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-2xl border border-brand-200 dark:border-brand-400/30 bg-brand-50 dark:bg-brand-500/15 p-5 sm:flex-row sm:items-center">
           <div className="flex items-center gap-4">
             <span className="grid size-11 place-items-center rounded-xl bg-brand-600 text-white">
               <CreditCard className="size-5" />
             </span>
             <div>
-              <p className="font-bold text-ink-900">
+              <p className="font-bold text-foreground">
                 {toPay.length} completed {toPay.length === 1 ? "job is" : "jobs are"} ready for payment
               </p>
-              <p className="text-sm text-ink-600">
+              <p className="text-sm text-foreground/75">
                 Total due {formatMoney(toPay.reduce((s, b) => s + b.finalAmount, 0))}
               </p>
             </div>
           </div>
-          <Link href="/dashboard/customer/bookings" className="btn btn-primary">
+          <Button asChild>
+<Link href="/dashboard/customer/bookings">
             Pay now
           </Link>
+</Button>
         </div>
       )}
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
         <ChartCard title="Jobs by status" subtitle="All of your repair requests">
           {mine.length === 0 ? (
-            <p className="py-10 text-center text-sm text-ink-500">No data yet.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">No data yet.</p>
           ) : (
             <DonutChart
               centerLabel="requests"
@@ -79,10 +85,10 @@ export default function CustomerOverview() {
           )}
         </ChartCard>
 
-        <section className="card p-5 sm:p-6">
+        <Card className="gap-0 py-0 p-5 sm:p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-ink-900">Recent requests</h2>
-            <Link href="/dashboard/customer/bookings" className="text-sm font-bold text-brand-700 hover:underline">
+            <h2 className="text-lg font-extrabold text-foreground">Recent requests</h2>
+            <Link href="/dashboard/customer/bookings" className="text-sm font-bold text-brand-700 dark:text-brand-300 hover:underline">
               View all
             </Link>
           </div>
@@ -95,12 +101,12 @@ export default function CustomerOverview() {
               actionHref="/services"
             />
           ) : (
-            <ul className="mt-4 divide-y divide-ink-100">
+            <ul className="mt-4 divide-y divide-border">
               {mine.slice(0, 5).map((b) => (
                 <li key={b._id} className="flex items-center justify-between gap-4 py-3.5">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-ink-900">{b.serviceTitle}</p>
-                    <p className="text-xs text-ink-500">
+                    <p className="truncate text-sm font-bold text-foreground">{b.serviceTitle}</p>
+                    <p className="text-xs text-muted-foreground">
                       {b.technicianName} · {formatDate(b.preferredDate)}
                     </p>
                   </div>
@@ -109,7 +115,7 @@ export default function CustomerOverview() {
               ))}
             </ul>
           )}
-        </section>
+        </Card>
       </div>
     </>
   );

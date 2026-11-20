@@ -7,8 +7,14 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { useDashboardUser } from "@/components/dashboard/user-context";
 import { Avatar } from "@/components/ui/avatar";
 import { RoleBadge } from "@/components/ui/badges";
-import { authClient } from "@/lib/auth-client";
+import { updateProfile } from "@/lib/mock-db";
 import { uploadImage } from "@/lib/upload-image";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 
 export default function ProfilePage() {
   const user = useDashboardUser();
@@ -32,79 +38,70 @@ export default function ProfilePage() {
     }
   }
 
-  async function onSubmit(e: FormEvent) {
+  function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (name.trim().length < 2) return setNameError("Name must be at least 2 characters");
     setNameError("");
-    const { error } = await authClient.updateUser({
-      name: name.trim(),
-      phone,
-      area,
-      bio,
-      image,
-    });
-    if (error) {
-      toast.error(error.message || "Could not update your profile");
-      return;
-    }
-    authClient.$store.notify("$sessionSignal");
-    toast.success("Profile updated");
+    // Phase 2: PATCH /api/users/profile (verifyToken)
+    const res = updateProfile(user.email, { name, phone, area, bio, image });
+    if (res.ok) toast.success("Profile updated");
+    else toast.error(res.error);
   }
 
   return (
     <>
       <PageHeader title="Update Profile" description="Your name and photo update everywhere straight away." />
       <form onSubmit={onSubmit} noValidate className="grid max-w-4xl gap-6 lg:grid-cols-[280px_1fr]">
-        <div className="card flex flex-col items-center p-6 text-center">
+        <Card className="gap-0 py-0 flex flex-col items-center p-6 text-center">
           <Avatar name={name || user.name} image={image} size="xl" />
-          <p className="mt-4 text-lg font-extrabold text-ink-900">{name || user.name}</p>
+          <p className="mt-4 text-lg font-extrabold text-foreground">{name || user.name}</p>
           <div className="mt-2">
             <RoleBadge role={user.role} />
           </div>
           <input id="pf-photo" type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-          <label htmlFor="pf-photo" className="btn btn-outline btn-sm mt-5 cursor-pointer">
+          <label htmlFor="pf-photo" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-5 cursor-pointer")}>
             {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
             Change photo
           </label>
           {image && (
-            <button type="button" className="mt-2 cursor-pointer text-xs font-semibold text-ink-400 hover:text-red-600" onClick={() => setImage("")}>
+            <button type="button" className="mt-2 cursor-pointer text-xs font-semibold text-muted-foreground hover:text-red-600" onClick={() => setImage("")}>
               Remove photo
             </button>
           )}
-        </div>
+        </Card>
 
-        <div className="card grid gap-5 p-5 sm:grid-cols-2 sm:p-8">
+        <Card className="gap-0 py-0 grid gap-5 p-5 sm:grid-cols-2 sm:p-8">
           <div className="sm:col-span-2">
-            <label htmlFor="pf-name" className="field-label">Full name</label>
-            <input id="pf-name" className="field" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={!!nameError} />
+            <Label htmlFor="pf-name">Full name</Label>
+            <Input id="pf-name"  value={name} onChange={(e) => setName(e.target.value)} aria-invalid={!!nameError} />
             {nameError && <p className="field-error">{nameError}</p>}
           </div>
           <div>
-            <label htmlFor="pf-email" className="field-label">Email</label>
-            <input id="pf-email" className="field" value={user.email} readOnly disabled />
+            <Label htmlFor="pf-email">Email</Label>
+            <Input id="pf-email"  value={user.email} readOnly disabled />
           </div>
           <div>
-            <label htmlFor="pf-role" className="field-label">Role</label>
-            <input id="pf-role" className="field capitalize" value={user.role} readOnly disabled />
+            <Label htmlFor="pf-role">Role</Label>
+            <Input id="pf-role" className="capitalize" value={user.role} readOnly disabled />
           </div>
           <div>
-            <label htmlFor="pf-phone" className="field-label">Phone</label>
-            <input id="pf-phone" className="field" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+880 1XXX-XXXXXX" inputMode="tel" />
+            <Label htmlFor="pf-phone">Phone</Label>
+            <Input id="pf-phone"  value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+880 1XXX-XXXXXX" inputMode="tel" />
           </div>
           <div>
-            <label htmlFor="pf-area" className="field-label">Area</label>
-            <input id="pf-area" className="field" value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. Mirpur, Dhaka" />
+            <Label htmlFor="pf-area">Area</Label>
+            <Input id="pf-area"  value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. Mirpur, Dhaka" />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="pf-bio" className="field-label">Bio</label>
-            <textarea id="pf-bio" rows={4} className="field resize-y" value={bio} onChange={(e) => setBio(e.target.value)} placeholder={user.role === "technician" ? "Your skills, experience and the devices you repair" : "A short note about you"} />
+            <Label htmlFor="pf-bio">Bio</Label>
+            <Textarea id="pf-bio" rows={4} className="resize-y" value={bio} onChange={(e) => setBio(e.target.value)} placeholder={user.role === "technician" ? "Your skills, experience and the devices you repair" : "A short note about you"} />
           </div>
-          <div className="flex justify-end border-t border-ink-100 pt-5 sm:col-span-2">
-            <button type="submit" disabled={uploading} className="btn btn-primary">
+          <div className="flex justify-end border-t border-border pt-5 sm:col-span-2">
+            <Button type="submit" disabled={uploading}>
               Save changes
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       </form>
     </>
   );

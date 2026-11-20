@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  ChevronDown,
   ClipboardList,
   CreditCard,
   Home,
@@ -18,17 +19,27 @@ import {
   UserCog,
   Users,
   Wrench,
-  X,
   Boxes,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardUserProvider } from "@/components/dashboard/user-context";
+import { PaletteTrigger } from "@/components/command-palette";
+import { ThemeToggle } from "@/components/theme";
 import { Avatar } from "@/components/ui/avatar";
 import { RoleBadge } from "@/components/ui/badges";
-import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
-import { dashboardPathFor } from "@/lib/mock-db";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { dashboardPathFor, signOut } from "@/lib/mock-db";
 import type { Role } from "@/lib/types";
 import { useSession } from "@/lib/use-session";
 import { cn } from "@/lib/utils";
@@ -40,7 +51,7 @@ interface NavItem {
   exact?: boolean;
 }
 
-const NAV: Record<Role, NavItem[]> = {
+export const NAV: Record<Role, NavItem[]> = {
   customer: [
     { href: "/dashboard/customer", label: "Overview", icon: LayoutDashboard, exact: true },
     { href: "/dashboard/customer/bookings", label: "My Bookings", icon: ClipboardList },
@@ -63,12 +74,12 @@ const NAV: Record<Role, NavItem[]> = {
 
 function FullScreenLoader() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-paper" aria-busy="true" aria-label="Loading dashboard">
+    <div className="grid min-h-dvh place-items-center bg-background" aria-busy="true" aria-label="Loading dashboard">
       <div className="flex flex-col items-center gap-4">
-        <span className="grid size-14 animate-pulse place-items-center rounded-2xl bg-brand-600 text-white">
+        <span className="animate-pulse-ring grid size-14 place-items-center rounded-2xl bg-primary text-white">
           <Wrench className="size-7 -rotate-45" />
         </span>
-        <p className="text-sm font-semibold text-ink-500">Loading your workspace…</p>
+        <p className="text-sm font-semibold text-muted-foreground">Loading your workspace…</p>
       </div>
     </div>
   );
@@ -111,13 +122,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     }
   }, [ready, user, pathname, routeRole, router]);
 
-  useEffect(() => {
-    if (!drawer) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawer(false);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [drawer]);
-
   if (!ready || !user || !allowed || pathname === "/dashboard") return <FullScreenLoader />;
 
   const items = [
@@ -126,87 +130,104 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   ];
   const isActive = (i: NavItem) => (i.exact ? pathname === i.href : pathname.startsWith(i.href));
 
-  async function handleSignOut() {
+  function handleSignOut() {
     signingOut.current = true;
-    await authClient.signOut();
+    signOut();
     toast.success("Signed out. See you soon!");
     router.push("/");
-    router.refresh();
   }
+
+  const navLinkCls = (active: boolean, slim: boolean) =>
+    cn(
+      "group/nav relative flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold outline-none transition-[background-color,color] duration-200 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+      slim && "justify-center px-0",
+      active
+        ? "bg-sidebar-primary text-white shadow-sm shadow-black/20"
+        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white",
+    );
+
+  const withTip = (slim: boolean, label: string, node: ReactNode) =>
+    slim ? (
+      <Tooltip>
+        <TooltipTrigger asChild>{node}</TooltipTrigger>
+        <TooltipContent side="right">{label}</TooltipContent>
+      </Tooltip>
+    ) : (
+      node
+    );
 
   const sidebar = (mobile: boolean) => {
     const slim = collapsed && !mobile;
     return (
-      <div className="flex h-full flex-col bg-ink-900 text-ink-200">
-        <div className={cn("flex h-[72px] items-center border-b border-white/10 px-5", slim && "justify-center px-0")}>
+      <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+        <div className={cn("flex h-[72px] items-center border-b border-sidebar-border px-5", slim && "justify-center px-0")}>
           {slim ? (
-            <Link href="/" aria-label="FixMate home" className="grid size-9 place-items-center rounded-xl bg-brand-600 text-white">
+            <Link href="/" aria-label="FixMate home" className="grid size-9 place-items-center rounded-xl bg-primary text-white">
               <Wrench className="size-5 -rotate-45" />
             </Link>
           ) : (
             <Logo tone="light" />
           )}
-          {mobile && (
-            <button
-              type="button"
-              className="ml-auto grid size-9 cursor-pointer place-items-center rounded-lg text-ink-300 hover:bg-white/10"
-              onClick={() => setDrawer(false)}
-              aria-label="Close sidebar"
-            >
-              <X className="size-5" />
-            </button>
-          )}
         </div>
 
-        <nav aria-label="Dashboard" className="flex-1 space-y-1 overflow-y-auto p-3">
+        <nav aria-label="Dashboard" className="scroll-thin flex-1 space-y-1 overflow-y-auto p-3">
+          {!slim && (
+            <p className="px-3.5 pt-2 pb-2 text-[11px] font-bold tracking-[0.18em] text-white/40 uppercase">
+              {user.role} workspace
+            </p>
+          )}
           {items.map((item) => {
             const active = isActive(item);
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setDrawer(false)}
-                title={slim ? item.label : undefined}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition",
-                  slim && "justify-center px-0",
-                  active ? "bg-brand-600 text-white shadow-sm" : "hover:bg-white/10 hover:text-white",
+              <div key={item.href}>
+                {withTip(
+                  slim,
+                  item.label,
+                  <Link
+                    href={item.href}
+                    onClick={() => setDrawer(false)}
+                    aria-label={slim ? item.label : undefined}
+                    aria-current={active ? "page" : undefined}
+                    className={navLinkCls(active, slim)}
+                  >
+                    {active && !slim && (
+                      <span aria-hidden className="absolute top-1/2 -left-3 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand-300" />
+                    )}
+                    <item.icon className="size-5 shrink-0 transition-transform duration-200 group-hover/nav:scale-110" />
+                    {!slim && <span className="truncate">{item.label}</span>}
+                  </Link>,
                 )}
-              >
-                <item.icon className="size-5 shrink-0" />
-                {!slim && <span className="truncate">{item.label}</span>}
-              </Link>
+              </div>
             );
           })}
         </nav>
 
-        <div className="space-y-1 border-t border-white/10 p-3">
-          {user.role === "customer" && (
-            <Link
-              href="/services"
-              title={slim ? "Browse services" : undefined}
+        <div className="space-y-1 border-t border-sidebar-border p-3">
+          {user.role === "customer" &&
+            withTip(
+              slim,
+              "Browse services",
+              <Link href="/services" aria-label={slim ? "Browse services" : undefined} className={navLinkCls(false, slim)}>
+                <Search className="size-5 shrink-0" />
+                {!slim && "Browse services"}
+              </Link>,
+            )}
+          {withTip(
+            slim,
+            "Sign out",
+            <button
+              type="button"
+              onClick={handleSignOut}
+              aria-label={slim ? "Sign out" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition hover:bg-white/10 hover:text-white",
+                "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold text-red-300 outline-none transition-colors hover:bg-red-500/15 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                 slim && "justify-center px-0",
               )}
             >
-              <Search className="size-5 shrink-0" />
-              {!slim && "Browse services"}
-            </Link>
+              <LogOut className="size-5 shrink-0" />
+              {!slim && "Sign Out"}
+            </button>,
           )}
-          <button
-            type="button"
-            onClick={handleSignOut}
-            title={slim ? "Sign out" : undefined}
-            className={cn(
-              "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-500/15",
-              slim && "justify-center px-0",
-            )}
-          >
-            <LogOut className="size-5 shrink-0" />
-            {!slim && "Sign Out"}
-          </button>
         </div>
       </div>
     );
@@ -214,65 +235,98 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <DashboardUserProvider value={user}>
-      <div className="min-h-dvh bg-ink-50">
+      <div className="min-h-dvh bg-background">
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-40 hidden transition-[width] duration-200 lg:block",
+            "fixed inset-y-0 left-0 z-40 hidden transition-[width] duration-300 ease-out lg:block",
             collapsed ? "w-[84px]" : "w-64",
           )}
         >
           {sidebar(false)}
         </aside>
 
-        {drawer && (
-          <div className="fixed inset-0 z-[90] lg:hidden">
-            <div className="absolute inset-0 bg-ink-950/60" onClick={() => setDrawer(false)} aria-hidden />
-            <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] shadow-pop">{sidebar(true)}</aside>
-          </div>
-        )}
+        <Sheet open={drawer} onOpenChange={setDrawer}>
+          <SheetContent side="left" className="w-72 border-0 bg-sidebar p-0 text-sidebar-foreground">
+            <SheetTitle>Dashboard navigation</SheetTitle>
+            <SheetDescription>Move between dashboard pages</SheetDescription>
+            {sidebar(true)}
+          </SheetContent>
+        </Sheet>
 
-        <div className={cn("flex min-h-dvh flex-col transition-[padding] duration-200", collapsed ? "lg:pl-[84px]" : "lg:pl-64")}>
-          <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b border-ink-100 bg-white/90 px-4 backdrop-blur sm:px-6">
+        <div className={cn("flex min-h-dvh flex-col transition-[padding] duration-300 ease-out", collapsed ? "lg:pl-[84px]" : "lg:pl-64")}>
+          <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b bg-background/85 px-4 backdrop-blur-lg sm:px-6">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="grid size-10 cursor-pointer place-items-center rounded-xl border border-ink-200 text-ink-700 transition hover:bg-ink-50 lg:hidden"
-                onClick={() => setDrawer(true)}
-                aria-label="Open sidebar"
-              >
+              <Button variant="outline" size="icon" className="lg:hidden" onClick={() => setDrawer(true)} aria-label="Open sidebar">
                 <PanelLeftOpen className="size-5" />
-              </button>
-              <button
-                type="button"
-                className="hidden size-10 cursor-pointer place-items-center rounded-xl border border-ink-200 text-ink-700 transition hover:bg-ink-50 lg:grid"
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="hidden lg:inline-flex"
                 onClick={() => setCollapsed((v) => !v)}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 aria-pressed={collapsed}
               >
                 {collapsed ? <PanelLeftOpen className="size-5" /> : <PanelLeftClose className="size-5" />}
-              </button>
-              <Link
-                href="/"
-                className="hidden items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-ink-600 transition hover:bg-ink-100 sm:flex"
-              >
-                <Home className="size-4" /> Back to Home
-              </Link>
+              </Button>
+              <Button asChild variant="ghost" className="hidden sm:inline-flex">
+                <Link href="/">
+                  <Home /> Back to Home
+                </Link>
+              </Button>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="hidden text-right sm:block">
-                <p className="max-w-[12rem] truncate text-sm font-bold text-ink-900">{user.name}</p>
-                <div className="mt-0.5 flex justify-end">
-                  <RoleBadge role={user.role} />
+            <div className="flex items-center gap-2">
+            <PaletteTrigger />
+            <ThemeToggle className="relative" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Open account menu"
+                  className="group flex cursor-pointer items-center gap-3 rounded-full border border-input bg-card py-1 pr-3 pl-1 outline-none transition-colors hover:border-ink-400 focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                >
+                  <Avatar name={user.name} image={user.image} size="sm" />
+                  <span className="hidden text-left sm:block">
+                    <span className="block max-w-[10rem] truncate text-sm leading-tight font-bold">{user.name}</span>
+                    <span className="block text-[11px] leading-tight text-muted-foreground capitalize">{user.role}</span>
+                  </span>
+                  <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 p-0">
+                <div className="flex items-center gap-3 border-b bg-secondary/60 p-4">
+                  <Avatar name={user.name} image={user.image} size="lg" />
+                  <div className="min-w-0">
+                    <p className="truncate font-bold">{user.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                    <div className="mt-1.5">
+                      <RoleBadge role={user.role} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <Link href="/dashboard/profile" aria-label="Open your profile">
-                <Avatar name={user.name} image={user.image} size="md" />
-              </Link>
+                <div className="p-1.5">
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile">
+                      <UserCog /> Update Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/">
+                      <Home /> Back to Home
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive" onSelect={handleSignOut}>
+                    <LogOut className="!text-red-600" /> Sign Out
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
             </div>
           </header>
 
-          <main id="main" className="flex-1 p-4 sm:p-6 lg:p-8">
+          <main id="main" className="page-enter flex-1 p-4 sm:p-6 lg:p-8">
             {children}
           </main>
         </div>

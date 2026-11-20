@@ -7,7 +7,11 @@ import { BookingBadge, PaymentBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDB } from "@/lib/mock-db";
 import type { BookingStatus } from "@/lib/types";
-import { cn, formatDate, formatMoney } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Booking } from "@/lib/types";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
 
 const FILTERS: { value: "all" | BookingStatus; label: string }[] = [
   { value: "all", label: "All" },
@@ -19,6 +23,22 @@ const FILTERS: { value: "all" | BookingStatus; label: string }[] = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
+const columns: ColumnDef<Booking>[] = [
+  { id: "Service", header: "Service", accessorFn: (b) => b.serviceTitle, meta: { className: "max-w-[14rem]" }, cell: ({ row }) => <span className="font-bold text-foreground">{row.original.serviceTitle}</span> },
+  { id: "Customer", header: "Customer", accessorFn: (b) => b.customerName },
+  { id: "Technician", header: "Technician", accessorFn: (b) => b.technicianName },
+  { id: "Date", header: "Date", accessorFn: (b) => b.preferredDate, cell: ({ row }) => <span className="whitespace-nowrap">{formatDate(row.original.preferredDate)}</span> },
+  { id: "Status", header: "Status", accessorFn: (b) => b.status, cell: ({ row }) => <BookingBadge status={row.original.status} /> },
+  { id: "Payment", header: "Payment", accessorFn: (b) => b.paymentStatus, cell: ({ row }) => <PaymentBadge status={row.original.paymentStatus} /> },
+  {
+    id: "Amount",
+    header: "Amount",
+    accessorFn: (b) => (b.status === "completed" ? b.finalAmount : b.basePrice),
+    meta: { className: "md:text-right" },
+    cell: ({ getValue }) => <span className="font-semibold text-foreground">{formatMoney(getValue<number>())}</span>,
+  },
+];
+
 export default function AdminBookingsPage() {
   const db = useDB();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["value"]>("all");
@@ -28,59 +48,20 @@ export default function AdminBookingsPage() {
     <>
       <PageHeader title="All Bookings" description="A read-only view of every repair job on the platform." />
 
-      <div className="mb-6 flex flex-wrap gap-2" role="tablist" aria-label="Filter by status">
-        {FILTERS.map((f) => (
-          <button
-            key={f.value}
-            role="tab"
-            aria-selected={filter === f.value}
-            type="button"
-            onClick={() => setFilter(f.value)}
-            className={cn(
-              "cursor-pointer rounded-full px-4 py-2 text-sm font-semibold transition",
-              filter === f.value ? "bg-ink-900 text-white" : "border border-ink-200 bg-white text-ink-600 hover:border-ink-400",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-6">
+        <TabsList aria-label="Filter by status">
+          {FILTERS.map((f) => (
+            <TabsTrigger key={f.value} value={f.value}>
+              {f.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {rows.length === 0 ? (
         <EmptyState icon={ClipboardList} title="No bookings found" message="No jobs match this status." />
       ) : (
-        <div className="table-wrap">
-          <table className="table-base min-w-[960px]">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Customer</th>
-                <th>Technician</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Payment</th>
-                <th className="text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((b) => (
-                <tr key={b._id}>
-                  <td className="max-w-[14rem] font-bold text-ink-900">{b.serviceTitle}</td>
-                  <td>{b.customerName}</td>
-                  <td>{b.technicianName}</td>
-                  <td className="whitespace-nowrap">{formatDate(b.preferredDate)}</td>
-                  <td>
-                    <BookingBadge status={b.status} />
-                  </td>
-                  <td>
-                    <PaymentBadge status={b.paymentStatus} />
-                  </td>
-                  <td className="text-right font-semibold text-ink-900">{formatMoney(b.status === "completed" ? b.finalAmount : b.basePrice)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={rows} />
       )}
     </>
   );

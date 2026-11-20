@@ -6,6 +6,23 @@ import { useDashboardUser } from "@/components/dashboard/user-context";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDB } from "@/lib/mock-db";
 import { formatDate, formatMoney } from "@/lib/utils";
+import type { Payment } from "@/lib/types";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
+
+const columns: ColumnDef<Payment>[] = [
+  { id: "Service", header: "Service", accessorFn: (p) => p.serviceTitle, cell: ({ row }) => <span className="font-bold text-foreground">{row.original.serviceTitle}</span> },
+  { id: "Technician", header: "Technician", accessorFn: (p) => p.technicianName },
+  { id: "Amount", header: "Amount", accessorFn: (p) => p.amount, cell: ({ row }) => <span className="font-semibold text-foreground">{formatMoney(row.original.amount)}</span> },
+  {
+    id: "Transaction ID",
+    header: "Transaction ID",
+    enableSorting: false,
+    accessorFn: (p) => p.transactionId,
+    cell: ({ row }) => <code className="rounded bg-secondary px-2 py-1 font-mono text-xs text-foreground/75">{row.original.transactionId}</code>,
+  },
+  { id: "Paid on", header: "Paid on", accessorFn: (p) => +new Date(p.paidAt), cell: ({ row }) => <span className="whitespace-nowrap">{formatDate(row.original.paidAt)}</span> },
+];
 
 export default function CustomerPaymentsPage() {
   const user = useDashboardUser();
@@ -22,9 +39,9 @@ export default function CustomerPaymentsPage() {
         description="Every job you have paid for, with the Stripe transaction reference."
         action={
           mine.length > 0 ? (
-            <div className="rounded-2xl border border-ink-100 bg-white px-5 py-3 text-right shadow-card">
-              <p className="text-xs font-medium text-ink-400">Total paid</p>
-              <p className="font-display text-2xl font-extrabold text-ink-900">{formatMoney(total)}</p>
+            <div className="rounded-2xl border border-border bg-card px-5 py-3 text-right shadow-card">
+              <p className="text-xs font-medium text-muted-foreground">Total paid</p>
+              <p className="font-display text-2xl font-extrabold text-foreground">{formatMoney(total)}</p>
             </div>
           ) : undefined
         }
@@ -39,32 +56,7 @@ export default function CustomerPaymentsPage() {
           actionHref="/dashboard/customer/bookings"
         />
       ) : (
-        <div className="table-wrap">
-          <table className="table-base">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Technician</th>
-                <th>Amount</th>
-                <th>Transaction ID</th>
-                <th>Paid on</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mine.map((p) => (
-                <tr key={p._id}>
-                  <td className="font-bold text-ink-900">{p.serviceTitle}</td>
-                  <td>{p.technicianName}</td>
-                  <td className="font-semibold text-ink-900">{formatMoney(p.amount)}</td>
-                  <td>
-                    <code className="rounded bg-ink-50 px-2 py-1 font-mono text-xs text-ink-600">{p.transactionId}</code>
-                  </td>
-                  <td className="whitespace-nowrap">{formatDate(p.paidAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={mine} initialSort={[{ id: "Paid on", desc: true }]} />
       )}
     </>
   );

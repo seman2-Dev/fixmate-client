@@ -14,6 +14,9 @@ import { ConfirmDialog } from "@/components/ui/modal";
 import { cancelBooking, createCheckoutSession, useDB } from "@/lib/mock-db";
 import type { Booking } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 function amountOf(b: Booking) {
   return b.status === "completed" ? b.finalAmount : b.basePrice;
@@ -45,14 +48,14 @@ export default function CustomerBookingsPage() {
   const actions = (b: Booking) => (
     <div className="flex flex-wrap items-center gap-2">
       {b.status === "requested" && (
-        <button type="button" className="btn btn-outline btn-sm" onClick={() => setCancelling(b)}>
+        <Button variant="outline" size="sm" type="button" onClick={() => setCancelling(b)}>
           Cancel
-        </button>
+        </Button>
       )}
       {b.status === "completed" && b.paymentStatus === "unpaid" && (
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => payNow(b)}>
+        <Button size="sm" type="button" onClick={() => payNow(b)}>
           <CreditCard className="size-4" /> Pay Now
-        </button>
+        </Button>
       )}
       {b.paymentStatus === "paid" && <PaymentBadge status="paid" />}
     </div>
@@ -64,9 +67,11 @@ export default function CustomerBookingsPage() {
         title="My Bookings"
         description="Every repair request you have sent, with live status. Pay once a job is completed."
         action={
-          <Link href="/services" className="btn btn-primary">
+          <Button asChild>
+<Link href="/services">
             New request
           </Link>
+</Button>
         }
       />
 
@@ -80,67 +85,67 @@ export default function CustomerBookingsPage() {
         />
       ) : (
         <>
-          <div className="table-wrap hidden md:block">
-            <table className="table-base">
-              <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Technician</th>
-                  <th>Preferred date</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Payment</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
+          <Card className="gap-0 overflow-hidden py-0 hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Technician</TableHead>
+                  <TableHead>Preferred date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {mine.map((b) => (
-                  <tr key={b._id}>
-                    <td>
+                  <TableRow key={b._id}>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <img src={b.serviceImage} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />
-                        <span className="max-w-[14rem] font-bold text-ink-900">{b.serviceTitle}</span>
+                        <span className="max-w-[14rem] font-bold text-foreground">{b.serviceTitle}</span>
                       </div>
-                    </td>
-                    <td>{b.technicianName}</td>
-                    <td className="whitespace-nowrap">{formatDate(b.preferredDate)}</td>
-                    <td className="whitespace-nowrap font-semibold text-ink-900">
+                    </TableCell>
+                    <TableCell>{b.technicianName}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDate(b.preferredDate)}</TableCell>
+                    <TableCell className="whitespace-nowrap font-semibold text-foreground">
                       {formatMoney(amountOf(b))}
-                      <span className="block text-xs font-normal text-ink-400">
+                      <span className="block text-xs font-normal text-muted-foreground">
                         {b.status === "completed" ? "final" : "base"}
                       </span>
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       <BookingBadge status={b.status} />
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       <PaymentBadge status={b.paymentStatus} />
-                    </td>
-                    <td>{actions(b)}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell>{actions(b)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
 
           <ul className="space-y-4 md:hidden">
             {mine.map((b) => (
-              <li key={b._id} className="card p-4">
+              <Card key={b._id} className="gap-0 py-0 p-4">
                 <div className="flex gap-3">
                   <img src={b.serviceImage} alt="" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
                   <div className="min-w-0">
-                    <p className="font-bold leading-snug text-ink-900">{b.serviceTitle}</p>
-                    <p className="text-xs text-ink-500">{b.technicianName}</p>
+                    <p className="font-bold leading-snug text-foreground">{b.serviceTitle}</p>
+                    <p className="text-xs text-muted-foreground">{b.technicianName}</p>
                   </div>
                 </div>
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-xs text-ink-400">Preferred date</dt>
-                    <dd className="font-semibold text-ink-800">{formatDate(b.preferredDate)}</dd>
+                    <dt className="text-xs text-muted-foreground">Preferred date</dt>
+                    <dd className="font-semibold text-foreground">{formatDate(b.preferredDate)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-ink-400">{b.status === "completed" ? "Final amount" : "Base price"}</dt>
-                    <dd className="font-semibold text-ink-800">{formatMoney(amountOf(b))}</dd>
+                    <dt className="text-xs text-muted-foreground">{b.status === "completed" ? "Final amount" : "Base price"}</dt>
+                    <dd className="font-semibold text-foreground">{formatMoney(amountOf(b))}</dd>
                   </div>
                 </dl>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -148,7 +153,7 @@ export default function CustomerBookingsPage() {
                   <PaymentBadge status={b.paymentStatus} />
                 </div>
                 <div className="mt-4">{actions(b)}</div>
-              </li>
+              </Card>
             ))}
           </ul>
         </>

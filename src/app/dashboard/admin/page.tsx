@@ -4,10 +4,12 @@ import Link from "next/link";
 import { Clock, Users, Wrench } from "lucide-react";
 import { AreaChart, BarChart, ChartCard, DonutChart } from "@/components/charts";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { Wallet } from "lucide-react";
 import { StatCard } from "@/components/ui/stat-card";
 import { CATEGORIES } from "@/lib/types";
 import { useDB } from "@/lib/mock-db";
 import { formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const MONTHS = ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"];
 
@@ -42,17 +44,20 @@ export default function AdminOverview() {
         description="Users, listings, jobs and revenue across FixMate."
         action={
           pending > 0 ? (
-            <Link href="/dashboard/admin/services" className="btn btn-primary">
+            <Button asChild>
+<Link href="/dashboard/admin/services">
               Review {pending} pending {pending === 1 ? "service" : "services"}
             </Link>
+</Button>
           ) : undefined
         }
       />
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Total Users" value={db.users.length} icon={Users} tone="blue" />
-        <StatCard label="Total Technicians" value={technicians} icon={Wrench} tone="brand" />
-        <StatCard label="Pending Services" value={pending} icon={Clock} tone="amber" hint={`Revenue ${formatMoney(revenue)}`} />
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total Users" value={db.users.length} icon={Users} tone="blue" hint="All roles combined" />
+        <StatCard label="Total Technicians" value={technicians} icon={Wrench} tone="brand" hint="Offering services" />
+        <StatCard label="Pending Services" value={pending} icon={Clock} tone="amber" hint="Awaiting approval" />
+        <StatCard label="Total Revenue" value={formatMoney(revenue)} icon={Wallet} tone="green" hint="Stripe payments received" />
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">

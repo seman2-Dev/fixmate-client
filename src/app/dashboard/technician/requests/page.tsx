@@ -10,7 +10,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { updateBookingStatus, useDB } from "@/lib/mock-db";
 import type { Booking, BookingStatus } from "@/lib/types";
-import { cn, formatDate, formatMoney } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const FILTERS: { value: "all" | BookingStatus; label: string }[] = [
   { value: "all", label: "All" },
@@ -60,99 +66,91 @@ export default function ManageRequestsPage() {
     <>
       <PageHeader title="Manage Requests" description="Move each job forward one step at a time. Only valid actions are shown." />
 
-      <div className="mb-6 flex flex-wrap gap-2" role="tablist" aria-label="Filter by status">
-        {FILTERS.map((f) => {
-          const count = f.value === "all" ? all.length : all.filter((b) => b.status === f.value).length;
-          return (
-            <button
-              key={f.value}
-              role="tab"
-              aria-selected={filter === f.value}
-              type="button"
-              onClick={() => setFilter(f.value)}
-              className={cn(
-                "cursor-pointer rounded-full px-4 py-2 text-sm font-semibold transition",
-                filter === f.value ? "bg-ink-900 text-white" : "border border-ink-200 bg-white text-ink-600 hover:border-ink-400",
-              )}
-            >
-              {f.label} <span className="ml-1 opacity-60">{count}</span>
-            </button>
-          );
-        })}
-      </div>
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-6">
+        <TabsList aria-label="Filter by status">
+          {FILTERS.map((f) => {
+            const count = f.value === "all" ? all.length : all.filter((b) => b.status === f.value).length;
+            return (
+              <TabsTrigger key={f.value} value={f.value}>
+                {f.label} <span className="rounded-full bg-foreground/10 px-1.5 text-xs tabular-nums">{count}</span>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </Tabs>
 
       {rows.length === 0 ? (
         <EmptyState icon={ClipboardList} title={filter === "all" ? "No requests yet" : "Nothing in this stage"} message={filter === "all" ? "When customers book your approved services, their requests will show up here." : "Try another status filter."} />
       ) : (
-        <div className="table-wrap">
-          <table className="table-base min-w-[1000px]">
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Service</th>
-                <th>Address & date</th>
-                <th>Problem</th>
-                <th>Status</th>
-                <th className="text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+        <Card className="gap-0 overflow-hidden py-0">
+          <Table stacked>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Service</TableHead>
+                <TableHead>Address & date</TableHead>
+                <TableHead>Problem</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {rows.map((b) => (
-                <tr key={b._id}>
-                  <td>
-                    <p className="font-bold text-ink-900">{b.customerName}</p>
-                    <p className="text-xs text-ink-500">{b.customerPhone}</p>
-                  </td>
-                  <td className="max-w-[12rem] font-semibold text-ink-900">{b.serviceTitle}</td>
-                  <td className="max-w-[14rem]">
-                    <p className="text-xs leading-relaxed text-ink-600">{b.address}</p>
-                    <p className="mt-1 text-xs font-bold text-ink-800">{formatDate(b.preferredDate)}</p>
-                  </td>
-                  <td className="max-w-[18rem]">
-                    <p className="line-clamp-3 text-xs leading-relaxed text-ink-600" title={b.problemDescription}>
+                <TableRow key={b._id}>
+                  <TableCell data-label="Customer">
+                    <p className="font-bold text-foreground">{b.customerName}</p>
+                    <p className="text-xs text-muted-foreground">{b.customerPhone}</p>
+                  </TableCell>
+                  <TableCell data-label="Service" className="max-w-[12rem] font-semibold text-foreground">{b.serviceTitle}</TableCell>
+                  <TableCell data-label="Address & date" className="max-w-[14rem]">
+                    <p className="text-xs leading-relaxed text-foreground/75">{b.address}</p>
+                    <p className="mt-1 text-xs font-bold text-foreground">{formatDate(b.preferredDate)}</p>
+                  </TableCell>
+                  <TableCell data-label="Problem" className="max-w-[18rem]">
+                    <p className="line-clamp-3 text-xs leading-relaxed text-foreground/75" title={b.problemDescription}>
                       {b.problemDescription}
                     </p>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell data-label="Status">
                     <div className="flex flex-col items-start gap-1.5">
                       <BookingBadge status={b.status} />
                       {b.status === "completed" && (
                         <>
                           <PaymentBadge status={b.paymentStatus} />
-                          <span className="text-xs font-semibold text-ink-700">{formatMoney(b.finalAmount)}</span>
+                          <span className="text-xs font-semibold text-foreground/85">{formatMoney(b.finalAmount)}</span>
                         </>
                       )}
                     </div>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell data-label="Action">
                     <div className="flex justify-end gap-2">
                       {b.status === "requested" && (
                         <>
-                          <button type="button" className="btn btn-success btn-sm" onClick={() => move(b, "accepted", "Request accepted")}>
+                          <Button variant="success" size="sm" type="button" onClick={() => move(b, "accepted", "Request accepted")}>
                             <Check className="size-4" /> Accept
-                          </button>
-                          <button type="button" className="btn btn-sm border border-red-200 bg-red-50 text-red-700 hover:bg-red-100" onClick={() => setRejecting(b)}>
+                          </Button>
+                          <Button size="sm" className="border border-red-200 dark:border-red-400/30 bg-red-50 dark:bg-red-500/15 text-red-700 dark:text-red-300 hover:bg-red-100" type="button" onClick={() => setRejecting(b)}>
                             <X className="size-4" /> Reject
-                          </button>
+                          </Button>
                         </>
                       )}
                       {b.status === "accepted" && (
-                        <button type="button" className="btn btn-dark btn-sm" onClick={() => move(b, "in-progress", "Work started")}>
+                        <Button variant="dark" size="sm" type="button" onClick={() => move(b, "in-progress", "Work started")}>
                           <Play className="size-4" /> Start Work
-                        </button>
+                        </Button>
                       )}
                       {b.status === "in-progress" && (
-                        <button type="button" className="btn btn-primary btn-sm" onClick={() => openComplete(b)}>
+                        <Button size="sm" type="button" onClick={() => openComplete(b)}>
                           <Check className="size-4" /> Mark Completed
-                        </button>
+                        </Button>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       <ConfirmDialog
@@ -180,27 +178,27 @@ export default function ManageRequestsPage() {
         size="sm"
         footer={
           <>
-            <button type="button" className="btn btn-outline" onClick={() => setCompleting(null)}>
+            <Button variant="outline" type="button" onClick={() => setCompleting(null)}>
               Cancel
-            </button>
-            <button type="submit" form="complete-form" className="btn btn-primary">
+            </Button>
+            <Button type="submit" form="complete-form">
               Mark Completed
-            </button>
+            </Button>
           </>
         }
       >
         <form id="complete-form" onSubmit={submitComplete} noValidate>
-          <p className="mb-4 text-sm text-ink-600">
+          <p className="mb-4 text-sm text-foreground/75">
             {completing?.serviceTitle} · base price {completing && formatMoney(completing.basePrice)}
           </p>
-          <label htmlFor="final-amount" className="field-label">Final amount (USD)</label>
-          <input
+          <Label htmlFor="final-amount">Final amount (USD)</Label>
+          <Input
             id="final-amount"
             type="number"
             min="0"
             step="0.01"
             inputMode="decimal"
-            className="field"
+            
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             aria-invalid={!!amountError}

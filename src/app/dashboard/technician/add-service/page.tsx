@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { useDashboardUser } from "@/components/dashboard/user-context";
 import { ServiceForm } from "@/components/technician/service-form";
 import { addService } from "@/lib/mock-db";
+import { Card } from "@/components/ui/card";
 
 export default function AddServicePage() {
   const user = useDashboardUser();
@@ -15,10 +16,12 @@ export default function AddServicePage() {
   return (
     <>
       <PageHeader title="Add a Service" description="List a repair service. It goes live after an admin approves it." />
-      <div className="card max-w-4xl p-5 sm:p-8">
-        <div className="mb-6 flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
+      <Card className="gap-0 py-0 max-w-4xl p-5 sm:p-8">
+        <div className="mb-6 flex items-start gap-3 rounded-xl bg-amber-50 dark:bg-amber-500/15 p-4 text-sm leading-relaxed text-amber-900 dark:text-amber-300">
           <Info className="mt-0.5 size-5 shrink-0" />
-          New services start as <strong className="mx-1">Pending</strong> and are hidden from the public until approved.
+          <p>
+            New services start as <strong>Pending</strong> and are hidden from the public until approved.
+          </p>
         </div>
         <ServiceForm
           tech={user}
@@ -31,7 +34,7 @@ export default function AddServicePage() {
             router.push("/dashboard/technician/my-services");
           }}
         />
-      </div>
+      </Card>
     </>
   );
 }

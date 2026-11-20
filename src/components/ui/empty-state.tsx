@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function EmptyState({
   icon: Icon = Inbox,
@@ -23,24 +24,24 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center rounded-3xl border border-dashed border-ink-200 bg-white/70 px-6 py-14 text-center",
+        "bg-blueprint-light flex flex-col items-center rounded-3xl border border-dashed border-border bg-card/70 px-6 py-14 text-center",
         className,
       )}
     >
-      <span className="grid size-16 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+      <span className="relative grid size-16 place-items-center rounded-2xl bg-brand-50 dark:bg-brand-500/15 text-brand-600 ring-8 ring-brand-50/60">
         <Icon className="size-8" strokeWidth={1.75} />
       </span>
-      <h3 className="mt-5 text-xl font-extrabold text-ink-900">{title}</h3>
-      {message && <p className="mt-2 max-w-md text-sm leading-relaxed text-ink-500">{message}</p>}
+      <h3 className="mt-5 text-xl font-extrabold text-foreground">{title}</h3>
+      {message && <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">{message}</p>}
       {actionLabel && actionHref && (
-        <Link href={actionHref} className="btn btn-primary mt-6">
-          {actionLabel}
-        </Link>
+        <Button asChild className="mt-6">
+          <Link href={actionHref}>{actionLabel}</Link>
+        </Button>
       )}
       {actionLabel && onAction && !actionHref && (
-        <button type="button" onClick={onAction} className="btn btn-primary mt-6">
+        <Button onClick={onAction} className="mt-6">
           {actionLabel}
-        </button>
+        </Button>
       )}
     </div>
   );

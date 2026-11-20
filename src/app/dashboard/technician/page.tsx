@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
 import { useDB } from "@/lib/mock-db";
 import { formatDate, formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export default function TechnicianOverview() {
   const user = useDashboardUser();
@@ -28,22 +30,24 @@ export default function TechnicianOverview() {
         title={`Welcome, ${user.name.split(" ")[0]}`}
         description="Your services, incoming requests and earnings at a glance."
         action={
-          <Link href="/dashboard/technician/add-service" className="btn btn-primary">
+          <Button asChild>
+<Link href="/dashboard/technician/add-service">
             Add a service
           </Link>
+</Button>
         }
       />
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Total Services" value={services.length} icon={Boxes} tone="blue" />
-        <StatCard label="Approved Services" value={approved.length} icon={BadgeCheck} tone="green" />
+        <StatCard label="Total Services" value={services.length} icon={Boxes} tone="blue" hint="Everything you listed" />
+        <StatCard label="Approved Services" value={approved.length} icon={BadgeCheck} tone="green" hint="Live for customers" />
         <StatCard label="Pending Requests" value={pendingRequests.length} icon={Inbox} tone="amber" hint={`Earned so far ${formatMoney(earned)}`} />
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         <ChartCard title="Jobs by status" subtitle="Requests sent to you">
           {jobs.length === 0 ? (
-            <p className="py-10 text-center text-sm text-ink-500">No jobs yet.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">No jobs yet.</p>
           ) : (
             <BarChart
               data={[
@@ -59,7 +63,7 @@ export default function TechnicianOverview() {
 
         <ChartCard title="Service approval" subtitle="Where your listings stand with the admin">
           {services.length === 0 ? (
-            <p className="py-10 text-center text-sm text-ink-500">No services listed yet.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">No services listed yet.</p>
           ) : (
             <DonutChart
               centerLabel="services"
@@ -74,22 +78,22 @@ export default function TechnicianOverview() {
         </ChartCard>
       </div>
 
-      <section className="card mt-6 p-5 sm:p-6">
+      <Card className="gap-0 py-0 mt-6 p-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-extrabold text-ink-900">Latest requests</h2>
-          <Link href="/dashboard/technician/requests" className="text-sm font-bold text-brand-700 hover:underline">
+          <h2 className="text-lg font-extrabold text-foreground">Latest requests</h2>
+          <Link href="/dashboard/technician/requests" className="text-sm font-bold text-brand-700 dark:text-brand-300 hover:underline">
             Manage requests
           </Link>
         </div>
         {jobs.length === 0 ? (
           <EmptyState className="mt-4 border-0 bg-transparent py-8" title="No requests yet" message="Requests appear here as soon as customers book your approved services." />
         ) : (
-          <ul className="mt-4 divide-y divide-ink-100">
+          <ul className="mt-4 divide-y divide-border">
             {jobs.slice(0, 5).map((b) => (
               <li key={b._id} className="flex items-center justify-between gap-4 py-3.5">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-ink-900">{b.serviceTitle}</p>
-                  <p className="text-xs text-ink-500">
+                  <p className="truncate text-sm font-bold text-foreground">{b.serviceTitle}</p>
+                  <p className="text-xs text-muted-foreground">
                     {b.customerName} · {formatDate(b.preferredDate)}
                   </p>
                 </div>
@@ -98,7 +102,7 @@ export default function TechnicianOverview() {
             ))}
           </ul>
         )}
-      </section>
+      </Card>
     </>
   );
 }

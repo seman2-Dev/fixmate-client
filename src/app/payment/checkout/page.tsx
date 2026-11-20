@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { RequireRole } from "@/components/auth/require-role";
 import { getCheckoutSession, useDB } from "@/lib/mock-db";
 import { formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 
 /**
  * PHASE 1 STAND-IN for Stripe's hosted Checkout page (test mode).
@@ -33,13 +37,15 @@ function CheckoutCard({ email }: { email: string }) {
 
   if (!found || found.session.customerEmail !== email) {
     return (
-      <div className="card w-full max-w-lg p-8 text-center">
-        <h1 className="text-2xl font-extrabold text-ink-900">Checkout session not found</h1>
-        <p className="mt-3 text-sm text-ink-500">Start the payment again from My Bookings.</p>
-        <Link href="/dashboard/customer/bookings" className="btn btn-primary mt-6">
+      <Card className="gap-0 py-0 w-full max-w-lg p-8 text-center">
+        <h1 className="text-2xl font-extrabold text-foreground">Checkout session not found</h1>
+        <p className="mt-3 text-sm text-muted-foreground">Start the payment again from My Bookings.</p>
+        <Button asChild className="mt-6">
+<Link href="/dashboard/customer/bookings">
           Back to My Bookings
         </Link>
-      </div>
+</Button>
+      </Card>
     );
   }
   const { booking, session } = found;
@@ -55,7 +61,7 @@ function CheckoutCard({ email }: { email: string }) {
   }
 
   return (
-    <div className="grid w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-pop md:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid w-full max-w-4xl overflow-hidden rounded-3xl bg-card shadow-pop md:grid-cols-[0.9fr_1.1fr]">
       <div className="bg-ink-900 p-8 text-white">
         <p className="text-xs font-bold uppercase tracking-widest text-brand-300">Test mode · mock checkout</p>
         <p className="mt-8 text-sm text-ink-300">Pay FixMate</p>
@@ -68,28 +74,28 @@ function CheckoutCard({ email }: { email: string }) {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-5 p-8">
-        <h1 className="text-xl font-extrabold text-ink-900">Pay with card</h1>
+        <h1 className="text-xl font-extrabold text-foreground">Pay with card</h1>
         <div>
-          <label htmlFor="ck-card" className="field-label">Card number</label>
-          <input id="ck-card" className="field font-mono" value={card} onChange={(e) => setCard(e.target.value)} inputMode="numeric" />
+          <Label htmlFor="ck-card">Card number</Label>
+          <Input id="ck-card" className="font-mono" value={card} onChange={(e) => setCard(e.target.value)} inputMode="numeric" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="ck-exp" className="field-label">Expiry</label>
-            <input id="ck-exp" className="field font-mono" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+            <Label htmlFor="ck-exp">Expiry</Label>
+            <Input id="ck-exp" className="font-mono" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
           </div>
           <div>
-            <label htmlFor="ck-cvc" className="field-label">CVC</label>
-            <input id="ck-cvc" className="field font-mono" value={cvc} onChange={(e) => setCvc(e.target.value)} />
+            <Label htmlFor="ck-cvc">CVC</Label>
+            <Input id="ck-cvc" className="font-mono" value={cvc} onChange={(e) => setCvc(e.target.value)} />
           </div>
         </div>
-        <button type="submit" disabled={busy} className="btn btn-primary btn-lg w-full">
+        <Button size="lg" className="w-full" type="submit" disabled={busy}>
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
           Pay {formatMoney(session.amount)}
-        </button>
+        </Button>
         <Link
           href="/payment/cancel"
-          className="block text-center text-sm font-semibold text-ink-500 hover:text-ink-800"
+          className="block text-center text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
           ← Cancel and go back
         </Link>

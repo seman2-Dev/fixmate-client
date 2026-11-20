@@ -6,6 +6,7 @@
  */
 
 import { useId } from "react";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export interface Datum {
@@ -34,7 +35,7 @@ export function DonutChart({
     <div className={cn("flex flex-col items-center gap-6 sm:flex-row", className)}>
       <div className="relative size-44 shrink-0">
         <svg viewBox="0 0 140 140" className="size-full -rotate-90" role="img" aria-label="Distribution chart">
-          <circle cx="70" cy="70" r={r} fill="none" stroke="#e3e8ed" strokeWidth="18" />
+          <circle cx="70" cy="70" r={r} fill="none" stroke="var(--border)" strokeWidth="18" />
           {total > 0 &&
             data.map((d) => {
               if (d.value === 0) return null;
@@ -46,7 +47,7 @@ export function DonutChart({
                   cy="70"
                   r={r}
                   fill="none"
-                  stroke={d.color ?? "#12202c"}
+                  stroke={d.color ?? "var(--foreground)"}
                   strokeWidth="18"
                   strokeDasharray={`${Math.max(len - 2, 0)} ${c - Math.max(len - 2, 0)}`}
                   strokeDashoffset={-offset}
@@ -58,19 +59,19 @@ export function DonutChart({
         </svg>
         <div className="absolute inset-0 grid place-items-center text-center">
           <div>
-            <p className="font-display text-3xl font-extrabold text-ink-900">{centerValue ?? total}</p>
-            {centerLabel && <p className="text-xs font-medium text-ink-500">{centerLabel}</p>}
+            <p className="font-display text-3xl font-extrabold text-foreground">{centerValue ?? total}</p>
+            {centerLabel && <p className="text-xs font-medium text-muted-foreground">{centerLabel}</p>}
           </div>
         </div>
       </div>
       <ul className="w-full space-y-2.5 text-sm">
         {data.map((d) => (
           <li key={d.label} className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-2 text-ink-600">
+            <span className="flex items-center gap-2 text-foreground/75">
               <span className="size-3 rounded-full" style={{ background: d.color }} />
               {d.label}
             </span>
-            <span className="font-bold text-ink-900">{d.value}</span>
+            <span className="font-bold text-foreground">{d.value}</span>
           </li>
         ))}
       </ul>
@@ -109,7 +110,7 @@ export function BarChart({
           x2={W - pad.r}
           y1={pad.t + (H - pad.t - pad.b) * (1 - g)}
           y2={pad.t + (H - pad.t - pad.b) * (1 - g)}
-          stroke="#e3e8ed"
+          stroke="var(--border)"
           strokeDasharray="3 4"
         />
       ))}
@@ -120,7 +121,7 @@ export function BarChart({
         const y = H - pad.b - h;
         return (
           <g key={d.label}>
-            <rect x={x} y={y} width={w} height={Math.max(h, 2)} rx="8" fill={d.color ?? `url(#${gid})`}>
+            <rect x={x} y={y} width={w} height={Math.max(h, 2)} rx="8" fill={d.color ?? `url(#${gid})`} style={{ transformBox: "fill-box", transformOrigin: "bottom", animation: `fm-bar-up .7s ${i * 70}ms cubic-bezier(.22,1,.36,1) both` }}>
               <title>{`${d.label}: ${valuePrefix}${d.value}`}</title>
             </rect>
             <text x={x + w / 2} y={y - 6} textAnchor="middle" className="fill-ink-700 text-[11px] font-bold">
@@ -175,15 +176,15 @@ export function AreaChart({
           x2={W - pad.r}
           y1={pad.t + (H - pad.t - pad.b) * (1 - g)}
           y2={pad.t + (H - pad.t - pad.b) * (1 - g)}
-          stroke="#e3e8ed"
+          stroke="var(--border)"
           strokeDasharray="3 4"
         />
       ))}
-      <path d={area} fill={`url(#${gid})`} />
-      <path d={line} fill="none" stroke="#d9480f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={area} fill={`url(#${gid})`} style={{ animation: "fm-fade-in 1s .3s ease-out both" }} />
+      <path d={line} fill="none" stroke="#d9480f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" pathLength={1} style={{ strokeDasharray: 1, animation: "fm-draw-1 1.1s ease-out both" }} />
       {pts.map((p) => (
         <g key={p.d.label}>
-          <circle cx={p.x} cy={p.y} r="5" fill="#fff" stroke="#d9480f" strokeWidth="3">
+          <circle cx={p.x} cy={p.y} r="5" fill="var(--card)" stroke="#d9480f" strokeWidth="3">
             <title>{`${p.d.label}: ${valuePrefix}${p.d.value}`}</title>
           </circle>
           <text x={p.x} y={H - pad.b + 20} textAnchor="middle" className="fill-ink-500 text-[11px] font-medium">
@@ -207,11 +208,11 @@ export function ChartCard({
   className?: string;
 }) {
   return (
-    <section className={cn("card p-5 sm:p-6", className)}>
-      <h2 className="text-lg font-extrabold text-ink-900">{title}</h2>
-      {subtitle && <p className="mb-4 mt-0.5 text-sm text-ink-500">{subtitle}</p>}
+    <Card className={cn("gap-0 p-5 transition-shadow duration-300 hover:shadow-lift sm:p-6", className)}>
+      <h2 className="text-lg font-extrabold text-foreground">{title}</h2>
+      {subtitle && <p className="mt-0.5 mb-4 text-sm text-muted-foreground">{subtitle}</p>}
       {!subtitle && <div className="mb-4" />}
       {children}
-    </section>
+    </Card>
   );
 }

@@ -11,7 +11,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { setServiceApproval, useDB } from "@/lib/mock-db";
 import type { ApprovalStatus, Service } from "@/lib/types";
-import { cn, formatDate, formatMoney } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const FILTERS: { value: "all" | ApprovalStatus; label: string }[] = [
   { value: "pending", label: "Pending" },
@@ -39,85 +43,77 @@ export default function AdminServicesPage() {
     <>
       <PageHeader title="Service Approval" description="Only approved and available services appear on public pages." />
 
-      <div className="mb-6 flex flex-wrap gap-2" role="tablist" aria-label="Filter by approval status">
-        {FILTERS.map((f) => {
-          const count = f.value === "all" ? db.services.length : db.services.filter((s) => s.approvalStatus === f.value).length;
-          return (
-            <button
-              key={f.value}
-              role="tab"
-              aria-selected={filter === f.value}
-              type="button"
-              onClick={() => setFilter(f.value)}
-              className={cn(
-                "cursor-pointer rounded-full px-4 py-2 text-sm font-semibold transition",
-                filter === f.value ? "bg-ink-900 text-white" : "border border-ink-200 bg-white text-ink-600 hover:border-ink-400",
-              )}
-            >
-              {f.label} <span className="ml-1 opacity-60">{count}</span>
-            </button>
-          );
-        })}
-      </div>
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-6">
+        <TabsList aria-label="Filter by approval status">
+          {FILTERS.map((f) => {
+            const count = f.value === "all" ? db.services.length : db.services.filter((s) => s.approvalStatus === f.value).length;
+            return (
+              <TabsTrigger key={f.value} value={f.value}>
+                {f.label} <span className="rounded-full bg-foreground/10 px-1.5 text-xs tabular-nums">{count}</span>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </Tabs>
 
       {rows.length === 0 ? (
         <EmptyState icon={Wrench} title="Nothing to review here" message={filter === "pending" ? "All caught up. New and edited services will appear here for approval." : "No services match this filter."} />
       ) : (
-        <div className="table-wrap">
-          <table className="table-base min-w-[900px]">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Technician</th>
-                <th>Price</th>
-                <th>Listed</th>
-                <th>Status</th>
-                <th className="text-right">Decision</th>
-              </tr>
-            </thead>
-            <tbody>
+        <Card className="gap-0 overflow-hidden py-0">
+          <Table stacked>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Service</TableHead>
+                <TableHead>Technician</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Listed</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Decision</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {rows.map((s) => (
-                <tr key={s._id}>
-                  <td>
+                <TableRow key={s._id}>
+                  <TableCell data-label="Service">
                     <div className="flex items-center gap-3">
                       <img src={s.image} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />
                       <div className="max-w-[16rem]">
-                        <p className="font-bold text-ink-900">{s.title}</p>
-                        <p className="text-xs text-ink-500">{s.category} · {s.serviceMode}</p>
+                        <p className="font-bold text-foreground">{s.title}</p>
+                        <p className="text-xs text-muted-foreground">{s.category} · {s.serviceMode}</p>
                       </div>
                     </div>
-                  </td>
-                  <td>
-                    <p className="font-semibold text-ink-800">{s.technicianName}</p>
-                    <p className="text-xs text-ink-500">{s.technicianEmail}</p>
-                  </td>
-                  <td className="font-semibold text-ink-900">{formatMoney(s.basePrice)}</td>
-                  <td className="whitespace-nowrap">{formatDate(s.createdAt)}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell data-label="Technician">
+                    <p className="font-semibold text-foreground">{s.technicianName}</p>
+                    <p className="text-xs text-muted-foreground">{s.technicianEmail}</p>
+                  </TableCell>
+                  <TableCell data-label="Price" className="font-semibold text-foreground">{formatMoney(s.basePrice)}</TableCell>
+                  <TableCell data-label="Listed" className="whitespace-nowrap">{formatDate(s.createdAt)}</TableCell>
+                  <TableCell data-label="Status">
                     <div className="flex flex-col items-start gap-1.5">
                       <ApprovalBadge status={s.approvalStatus} />
                       {s.approvalStatus === "approved" && <AvailabilityBadge available={s.isAvailable} />}
                     </div>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell data-label="Decision">
                     <div className="flex justify-end gap-2">
                       {s.approvalStatus !== "approved" && (
-                        <button type="button" className="btn btn-success btn-sm" onClick={() => decide(s, "approved")}>
+                        <Button variant="success" size="sm" type="button" onClick={() => decide(s, "approved")}>
                           <Check className="size-4" /> Approve
-                        </button>
+                        </Button>
                       )}
                       {s.approvalStatus !== "rejected" && (
-                        <button type="button" className="btn btn-sm border border-red-200 bg-red-50 text-red-700 hover:bg-red-100" onClick={() => setRejecting(s)}>
+                        <Button size="sm" className="border border-red-200 dark:border-red-400/30 bg-red-50 dark:bg-red-500/15 text-red-700 dark:text-red-300 hover:bg-red-100" type="button" onClick={() => setRejecting(s)}>
                           <X className="size-4" /> Reject
-                        </button>
+                        </Button>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       <ConfirmDialog
