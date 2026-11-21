@@ -14,12 +14,12 @@ export interface MockUser extends User {
 export const seedUsers: MockUser[] = [
   {
     _id: "u_admin",
-    name: "Maya Chowdhury",
+    name: "Semanto Bolbol",
     email: "admin@fixmate.dev",
     image: "",
     role: "admin",
     phone: "+880 1700-000001",
-    area: "Gulshan, Dhaka",
+    area: "Rajshahi, Rajshahi",
     bio: "Platform admin at FixMate. Keeps listings honest and payouts flowing.",
     createdAt: "2026-01-05T09:00:00.000Z",
     password: DEMO_PASSWORD,
@@ -118,7 +118,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Smartphone",
     description:
       "Genuine-grade OLED screen replacement for iPhone 11 to 15 series. Includes adhesive reseal, touch and Face ID check, and a 90-day warranty on the panel. Most repairs finish while you wait.",
-    image: "/services/s01.svg",
+    image: "/services/s01.svg", // https://ibb.co/gM38Tf7W
     basePrice: 85,
     estimatedDuration: "1-2 hours",
     serviceMode: "Shop Drop-off",
@@ -134,7 +134,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Smartphone",
     description:
       "Swap swollen or fast-draining batteries and repair loose or dead USB-C and micro-USB ports for Samsung, Xiaomi, Oppo and Realme devices. Includes a full charging-circuit diagnostic.",
-    image: "/services/s02.svg",
+    image: "/services/s02.svg", // https://ibb.co/99BXmjKv
     basePrice: 35,
     estimatedDuration: "2-3 hours",
     serviceMode: "Home Visit",
@@ -150,7 +150,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Laptop & PC",
     description:
       "Full internal dust removal, fan lubrication and fresh thermal paste to cure overheating and throttling. Includes a temperature benchmark before and after the service.",
-    image: "/services/s03.svg",
+    image: "/services/s03.svg", // https://ibb.co/3ynZL0Ms
     basePrice: 40,
     estimatedDuration: "3-4 hours",
     serviceMode: "Shop Drop-off",
@@ -166,7 +166,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Laptop & PC",
     description:
       "Clone your old drive to a new NVMe or SATA SSD, or run a clean Windows install with drivers. We move your files and verify everything boots before you take it home.",
-    image: "/services/s04.svg",
+    image: "/services/s04.svg", // https://ibb.co/NdHZbz1K
     basePrice: 55,
     estimatedDuration: "1 day",
     serviceMode: "Shop Drop-off",
@@ -182,7 +182,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "AC",
     description:
       "Indoor and outdoor unit wash, filter cleaning, drain-line clearing and refrigerant pressure check for split air conditioners up to 2 ton. Includes a cooling performance report.",
-    image: "/services/s05.svg",
+    image: "/services/s05.svg", // https://ibb.co/wr7k8ffZ
     basePrice: 30,
     estimatedDuration: "2 hours",
     serviceMode: "Home Visit",
@@ -198,7 +198,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "AC",
     description:
       "Diagnosis and repair of compressors, capacitors and inverter control boards. We quote the exact fault before any part is replaced and keep the old parts for you to see.",
-    image: "/services/s06.svg",
+    image: "/services/s06.svg", // https://ibb.co/jZT6Hzkb
     basePrice: 95,
     estimatedDuration: "1 day",
     serviceMode: "Home Visit",
@@ -214,7 +214,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Refrigerator",
     description:
       "Fix warm fridges and freezers: thermostat, defrost heater, fan motor and gas leak repair for single and double-door models of all major brands. 30-day warranty on parts.",
-    image: "/services/s07.svg",
+    image: "/services/s07.svg", // https://ibb.co/mVSDqjSZ
     basePrice: 50,
     estimatedDuration: "3-5 hours",
     serviceMode: "Home Visit",
@@ -230,7 +230,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Refrigerator",
     description:
       "Replace worn door gaskets and failing start relays to stop frost build-up and noisy cycling. Parts are matched to your fridge model number.",
-    image: "/services/s08.svg",
+    image: "/services/s08.svg", // https://ibb.co/jvkTDc79
     basePrice: 28,
     estimatedDuration: "2 hours",
     serviceMode: "Home Visit",
@@ -246,7 +246,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "TV",
     description:
       "Fix dim screens, dark corners and sound-but-no-picture faults by replacing LED backlight strips and power boards. Works with Sony, Samsung, LG, Walton and Singer TVs up to 65 inches.",
-    image: "/services/s09.svg",
+    image: "/services/s09.svg", // https://ibb.co/93zZMdzY
     basePrice: 60,
     estimatedDuration: "1 day",
     serviceMode: "Home Visit",
@@ -262,7 +262,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "TV",
     description:
       "Reflash firmware, fix boot loops, restore app stores and repair Wi-Fi modules on Android and webOS TVs. Includes remote and HDMI-port testing.",
-    image: "/services/s10.svg",
+    image: "/services/s10.svg", // https://ibb.co/WWmcbn0g
     basePrice: 25,
     estimatedDuration: "1-2 hours",
     serviceMode: "Home Visit",
@@ -278,7 +278,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Washing Machine",
     description:
       "Repair water that will not drain, drums that will not spin and error codes on front-load and top-load machines. Pump, belt and bearing replacement available on the spot.",
-    image: "/services/s11.svg",
+    image: "/services/s11.svg", // https://ibb.co/zV8GRSVQ
     basePrice: 45,
     estimatedDuration: "2-4 hours",
     serviceMode: "Home Visit",
@@ -294,7 +294,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Washing Machine",
     description:
       "Rewind or replace motors and repair control boards on fully automatic washing machines. A written fault report is provided before work starts.",
-    image: "/services/s12.svg",
+    image: "/services/s12.svg", // https://ibb.co/Zp04QFfq
     basePrice: 70,
     estimatedDuration: "1 day",
     serviceMode: "Shop Drop-off",
@@ -310,7 +310,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Electrical",
     description:
       "Trace tripping breakers, flickering lights and dead sockets. Includes a safety inspection of your distribution board with photos and a clear list of what needs fixing.",
-    image: "/services/s13.svg",
+    image: "/services/s13.svg", // https://ibb.co/MF6k93s
     basePrice: 22,
     estimatedDuration: "1-2 hours",
     serviceMode: "Home Visit",
@@ -326,7 +326,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Electrical",
     description:
       "Concealed or surface rewiring of a single room with ISI-grade copper wire, MCB-protected circuits and modular switchboards. Materials are quoted separately.",
-    image: "/services/s14.svg",
+    image: "/services/s14.svg", // https://ibb.co/RksBgWw3
     basePrice: 120,
     estimatedDuration: "1-2 days",
     serviceMode: "Home Visit",
@@ -342,7 +342,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Smartphone",
     description:
       "Ultrasonic cleaning and board-level repair for liquid-damaged phones. Free diagnosis, and you only pay if the phone powers back on.",
-    image: "/services/s15.svg",
+    image: "/services/s15.svg", // https://ibb.co/ymjqTt5n
     basePrice: 65,
     estimatedDuration: "2 days",
     serviceMode: "Shop Drop-off",
@@ -358,7 +358,7 @@ const serviceSeeds: ServiceSeed[] = [
     category: "Laptop & PC",
     description:
       "Assembly, cable management, BIOS tuning and stress testing for custom gaming PCs.",
-    image: "/services/s16.svg",
+    image: "/services/s16.svg", // https://ibb.co/1t0Szpn7
     basePrice: 90,
     estimatedDuration: "1 day",
     serviceMode: "Shop Drop-off",
