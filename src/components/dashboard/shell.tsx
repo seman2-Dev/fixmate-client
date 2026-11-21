@@ -39,7 +39,8 @@ import {
 import { Logo } from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { dashboardPathFor, signOut } from "@/lib/mock-db";
+import { dashboardPathFor } from "@/lib/mock-db";
+import { signOut } from "@/lib/auth-client";
 import type { Role } from "@/lib/types";
 import { useSession } from "@/lib/use-session";
 import { cn } from "@/lib/utils";
@@ -130,9 +131,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   ];
   const isActive = (i: NavItem) => (i.exact ? pathname === i.href : pathname.startsWith(i.href));
 
-  function handleSignOut() {
+  async function handleSignOut() {
     signingOut.current = true;
-    signOut();
+    await signOut();
     toast.success("Signed out. See you soon!");
     router.push("/");
   }

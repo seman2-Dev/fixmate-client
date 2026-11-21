@@ -6,7 +6,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PasswordInput } from "@/components/auth/password-input";
-import { DEMO_PASSWORD, dashboardPathFor, signIn } from "@/lib/mock-db";
+import { signIn } from "@/lib/auth-client";
 import { safeRedirect } from "@/lib/redirect";
 import { useSession } from "@/lib/use-session";
 import { Button } from "@/components/ui/button";
@@ -18,11 +18,9 @@ interface Errors {
   password?: string;
 }
 
-const DEMO = [
-  { label: "Customer", email: "ayesha@fixmate.dev" },
-  { label: "Technician", email: "rafiq@fixmate.dev" },
-  { label: "Admin", email: "admin@fixmate.dev" },
-];
+function dashboardPathFor(role: "customer" | "technician" | "admin") {
+  return `/dashboard/${role}`;
+}
 
 export function SignInForm() {
   const router = useRouter();
@@ -39,7 +37,7 @@ export function SignInForm() {
     if (ready && user && !busy) router.replace(redirect ?? dashboardPathFor(user.role));
   }, [ready, user, busy, redirect, router]);
 
-  function onSubmit(ev: FormEvent) {
+  async function onSubmit(ev: FormEvent) {
     ev.preventDefault();
     const e: Errors = {};
     if (!email.trim()) e.email = "Email is required";
@@ -49,15 +47,29 @@ export function SignInForm() {
     if (Object.keys(e).length) return;
 
     setBusy(true);
-    // Phase 2: BetterAuth signIn.email({ email, password })
-    const res = signIn(email, password);
-    if (!res.ok) {
+    const res = await signIn.email({
+      email: email.trim(),
+      password,
+      callbackURL: redirect ?? dashboardPathFor("customer"),
+    });
+    if (res.error) {
       setBusy(false);
-      toast.error(res.error);
+      toast.error(res.error.message || "Could not sign in");
       return;
     }
-    toast.success(`Welcome back, ${res.data.name.split(" ")[0]}!`);
-    router.replace(redirect ?? dashboardPathFor(res.data.role));
+    toast.success("Welcome back!");
+  }
+
+  async function signInWithGoogle() {
+    setBusy(true);
+    const res = await signIn.social({
+      provider: "google",
+      callbackURL: redirect ?? "/dashboard",
+    });
+    if (res.error) {
+      setBusy(false);
+      toast.error(res.error.message || "Could not sign in with Google");
+    }
   }
 
   return (
@@ -95,6 +107,17 @@ export function SignInForm() {
         Sign In
       </Button>
 
+      <Button
+        variant="outline"
+        size="lg"
+        className="w-full"
+        type="button"
+        disabled={busy}
+        onClick={signInWithGoogle}
+      >
+        Continue with Google
+      </Button>
+
       <p className="text-center text-sm text-muted-foreground">
         New to FixMate?{" "}
         <Link
@@ -105,29 +128,6 @@ export function SignInForm() {
         </Link>
       </p>
 
-      <div className="rounded-2xl border border-dashed border-border bg-card p-4">
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Demo accounts (Phase 1 mock)</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {DEMO.map((d) => (
-            <Button variant="outline" size="sm"
-              key={d.email}
-              type="button"
-             
-              onClick={() => {
-                setEmail(d.email);
-                setPassword(DEMO_PASSWORD);
-                setErrors({});
-              }}
-            >
-              {d.label}
-            </Button>
-          ))}
-        </div>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Tap a role to fill the form. Password for all demo accounts:{" "}
-          <code className="rounded bg-secondary px-1.5 py-0.5 font-mono text-foreground/85">{DEMO_PASSWORD}</code>
-        </p>
-      </div>
     </form>
   );
 }

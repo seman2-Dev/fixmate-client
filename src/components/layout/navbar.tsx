@@ -19,7 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { dashboardPathFor, signOut } from "@/lib/mock-db";
+import { dashboardPathFor } from "@/lib/mock-db";
+import { signOut } from "@/lib/auth-client";
 import { useSession } from "@/lib/use-session";
 import { cn } from "@/lib/utils";
 
@@ -59,8 +60,8 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  function handleSignOut() {
-    signOut();
+  async function handleSignOut() {
+    await signOut();
     setMobileOpen(false);
     toast.success("Signed out. See you soon!");
     router.push("/");

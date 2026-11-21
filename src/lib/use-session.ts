@@ -1,15 +1,36 @@
 "use client";
 
-import { selectSessionUser, useDB, useHydrated } from "./mock-db";
+import type { Role } from "./types";
+import { useSession as useBetterAuthSession } from "./auth-client";
 
-/**
- * Current session. `ready` is false until client state is live, so guards must
- * wait for it (a reload on a private route must never bounce a logged-in user to /sign-in).
- * Phase 2 swaps this for BetterAuth's `useSession`.
- */
 export function useSession() {
-  const db = useDB();
-  const ready = useHydrated();
-  const user = ready ? selectSessionUser(db) : null;
-  return { user, ready };
+  const session = useBetterAuthSession();
+  const rawUser = session.data?.user as
+    | {
+        id: string;
+        name: string;
+        email: string;
+        image?: string | null;
+        role?: Role;
+        phone?: string;
+        area?: string;
+        bio?: string;
+      }
+    | undefined;
+
+  const user = rawUser
+    ? {
+        _id: rawUser.id,
+        name: rawUser.name,
+        email: rawUser.email,
+        image: rawUser.image || "",
+        role: rawUser.role || "customer",
+        phone: rawUser.phone || "",
+        area: rawUser.area || "",
+        bio: rawUser.bio || "",
+        createdAt: session.data?.session?.createdAt?.toString?.() || "",
+      }
+    : null;
+
+  return { user, ready: !session.isPending };
 }

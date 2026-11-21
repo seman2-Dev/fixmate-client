@@ -63,7 +63,20 @@ npm run build && npm start
 
 ### Environment variables
 
-Phase 1 needs none. Phase 2 will use `.env.local` (never committed); see `.env.example`.
+Configure `.env.local` (never committed) with:
+
+```dotenv
+MONGODB_URI=mongodb+srv://...
+DB_NAME=fixmatedb
+BETTER_AUTH_SECRET=...
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_GOOGLE_CLIENT_ID=...
+BETTER_AUTH_GOOGLE_CLIENT_SECRET=...
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+Create Google OAuth credentials with the callback URL
+`http://localhost:3000/api/auth/callback/google`.
 
 ## Project structure
 

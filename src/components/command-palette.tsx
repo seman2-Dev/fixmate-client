@@ -8,7 +8,8 @@ import { NAV } from "@/components/dashboard/shell";
 import { useTheme } from "@/components/theme";
 import { Button } from "@/components/ui/button";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { signOut, useDB } from "@/lib/mock-db";
+import { useDB } from "@/lib/mock-db";
+import { signOut } from "@/lib/auth-client";
 import { isPublic } from "@/lib/services-query";
 import { CATEGORIES } from "@/lib/types";
 import { useSession } from "@/lib/use-session";
@@ -143,9 +144,9 @@ export function CommandPalette() {
           {user && (
             <CommandItem
               value="sign out logout"
-              onSelect={() => {
+              onSelect={async () => {
                 setOpen(false);
-                signOut();
+                await signOut();
                 toast.success("Signed out. See you soon!");
                 router.push("/");
               }}

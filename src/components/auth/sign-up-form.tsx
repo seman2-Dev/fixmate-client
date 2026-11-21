@@ -6,7 +6,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, UserRound, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { PasswordInput } from "@/components/auth/password-input";
-import { dashboardPathFor, signUp } from "@/lib/mock-db";
+import { signIn, signUp } from "@/lib/auth-client";
 import { safeRedirect } from "@/lib/redirect";
 import { useSession } from "@/lib/use-session";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,10 @@ interface Errors {
   name?: string;
   email?: string;
   password?: string;
+}
+
+function dashboardPathFor(role: "customer" | "technician" | "admin") {
+  return `/dashboard/${role}`;
 }
 
 export function validatePassword(pw: string): string | undefined {
@@ -69,22 +73,38 @@ export function SignUpForm() {
     return e;
   }
 
-  function onSubmit(ev: FormEvent) {
+  async function onSubmit(ev: FormEvent) {
     ev.preventDefault();
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length) return;
 
     setBusy(true);
-    // Phase 2: BetterAuth signUp.email({ name, email, password, role })
-    const res = signUp({ name, email, password, role });
-    if (!res.ok) {
+    const res = await signUp.email({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      role,
+      callbackURL: safeRedirect(params.get("redirect")) ?? dashboardPathFor(role),
+    });
+    if (res.error) {
       setBusy(false);
-      toast.error(res.error);
+      toast.error(res.error.message || "Could not create account");
       return;
     }
-    toast.success(`Welcome to FixMate, ${res.data.name.split(" ")[0]}!`);
-    router.replace(safeRedirect(params.get("redirect")) ?? dashboardPathFor(res.data.role));
+    toast.success(`Welcome to FixMate, ${name.trim().split(" ")[0]}!`);
+  }
+
+  async function signUpWithGoogle() {
+    setBusy(true);
+    const res = await signIn.social({
+      provider: "google",
+      callbackURL: safeRedirect(params.get("redirect")) ?? "/dashboard",
+    });
+    if (res.error) {
+      setBusy(false);
+      toast.error(res.error.message || "Could not continue with Google");
+    }
   }
 
   return (
@@ -172,6 +192,17 @@ export function SignUpForm() {
       <Button size="lg" className="w-full" type="submit" disabled={busy}>
         {busy && <Loader2 className="size-4 animate-spin" />}
         Create Account
+      </Button>
+
+      <Button
+        variant="outline"
+        size="lg"
+        className="w-full"
+        type="button"
+        disabled={busy}
+        onClick={signUpWithGoogle}
+      >
+        Continue with Google
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
