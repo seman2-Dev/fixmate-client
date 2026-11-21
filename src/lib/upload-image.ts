@@ -10,6 +10,21 @@ export async function uploadImage(file: File, maxWidth = 900): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file");
   if (file.size > MAX_IMAGE_MB * 1024 * 1024) throw new Error(`Image must be under ${MAX_IMAGE_MB}MB`);
 
+  const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+  if (apiKey) {
+    const form = new FormData();
+    form.set("image", file);
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`, {
+      method: "POST",
+      body: form,
+    });
+    const payload = await response.json() as { data?: { url?: string }; error?: { message?: string } };
+    if (!response.ok || !payload.data?.url) {
+      throw new Error(payload.error?.message || "Could not upload the image");
+    }
+    return payload.data.url;
+  }
+
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
