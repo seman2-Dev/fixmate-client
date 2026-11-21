@@ -3,17 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { ArrowRight, BadgeCheck, Check, Search, ShieldCheck, Smartphone, Wallet, Wrench } from "lucide-react";
+import { ArrowRight, Search, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES } from "@/lib/types";
 import { HeroSlideshow } from "@/components/home/hero-slideshow";
-
-const TRACK = [
-  { label: "Requested", done: true },
-  { label: "Accepted", done: true },
-  { label: "In Progress", active: true },
-  { label: "Completed" },
-];
 
 /** A live-looking "repair ticket" that explains the product at a glance. */
 // function JobTicket() {

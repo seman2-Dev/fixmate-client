@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Printer, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { RequireRole } from "@/components/auth/require-role";
 import { getCheckoutSession, useDB, verifyCheckoutSession } from "@/lib/mock-db";
@@ -85,11 +85,14 @@ function Verify({ email }: { email: string }) {
           <dd className="mt-1 break-all font-mono text-xs font-semibold text-foreground">{p.transactionId}</dd>
         </div>
       </dl>
-      <Button asChild size="lg" className="mt-8 w-full">
-<Link href="/dashboard/customer/bookings">
-        Back to My Bookings
-      </Link>
-</Button>
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <Button variant="outline" type="button" onClick={() => window.print()}>
+          <Printer className="size-4" /> Print invoice
+        </Button>
+        <Button asChild>
+          <Link href="/dashboard/customer/bookings">Back to My Bookings</Link>
+        </Button>
+      </div>
     </Card>
   );
 }

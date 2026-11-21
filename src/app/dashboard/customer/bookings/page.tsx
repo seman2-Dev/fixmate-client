@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ClipboardList, CreditCard } from "lucide-react";
+import { CheckCircle2, ClipboardList, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useDashboardUser } from "@/components/dashboard/user-context";
@@ -20,6 +20,35 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 function amountOf(b: Booking) {
   return b.status === "completed" ? b.finalAmount : b.basePrice;
+}
+
+function JobTimeline({ booking }: { booking: Booking }) {
+  const steps = ["requested", "accepted", "in-progress", "completed", "paid"] as const;
+  const reached = new Set((booking.statusHistory ?? []).map((entry) => entry.status));
+  if (booking.status === "cancelled" || booking.status === "rejected") {
+    return (
+      <p className="text-xs font-semibold text-muted-foreground">
+        Final state: {booking.status === "cancelled" ? "Cancelled" : "Rejected"}
+      </p>
+    );
+  }
+  if (booking.paymentStatus === "paid") reached.add("paid");
+  return (
+    <ol className="flex flex-wrap items-center gap-2" aria-label="Job timeline">
+      {steps.map((step, index) => {
+        const active = reached.has(step);
+        return (
+          <li key={step} className="flex items-center gap-1.5">
+            {index > 0 && <span className="hidden h-px w-3 bg-border sm:block" aria-hidden />}
+            <CheckCircle2 className={active ? "size-4 text-emerald-600" : "size-4 text-ink-300"} />
+            <span className={active ? "text-xs font-bold text-foreground" : "text-xs text-muted-foreground"}>
+              {step === "in-progress" ? "In Progress" : step[0].toUpperCase() + step.slice(1)}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }
 
 export default function CustomerBookingsPage() {
@@ -104,7 +133,10 @@ export default function CustomerBookingsPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <img src={b.serviceImage} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />
-                        <span className="max-w-[14rem] font-bold text-foreground">{b.serviceTitle}</span>
+                        <div className="max-w-[14rem]">
+                          <span className="block font-bold text-foreground">{b.serviceTitle}</span>
+                          <div className="mt-2"><JobTimeline booking={b} /></div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>{b.technicianName}</TableCell>
@@ -152,6 +184,7 @@ export default function CustomerBookingsPage() {
                   <BookingBadge status={b.status} />
                   <PaymentBadge status={b.paymentStatus} />
                 </div>
+                <div className="mt-4"><JobTimeline booking={b} /></div>
                 <div className="mt-4">{actions(b)}</div>
               </Card>
             ))}

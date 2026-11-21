@@ -1,6 +1,6 @@
 "use client";
 
-import { Receipt } from "lucide-react";
+import { Printer, Receipt } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useDashboardUser } from "@/components/dashboard/user-context";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -9,6 +9,7 @@ import { formatDate, formatMoney } from "@/lib/utils";
 import type { Payment } from "@/lib/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
 
 const columns: ColumnDef<Payment>[] = [
   { id: "Service", header: "Service", accessorFn: (p) => p.serviceTitle, cell: ({ row }) => <span className="font-bold text-foreground">{row.original.serviceTitle}</span> },
@@ -39,9 +40,14 @@ export default function CustomerPaymentsPage() {
         description="Every job you have paid for, with the Stripe transaction reference."
         action={
           mine.length > 0 ? (
-            <div className="rounded-2xl border border-border bg-card px-5 py-3 text-right shadow-card">
-              <p className="text-xs font-medium text-muted-foreground">Total paid</p>
-              <p className="font-display text-2xl font-extrabold text-foreground">{formatMoney(total)}</p>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" type="button" onClick={() => window.print()}>
+                <Printer className="size-4" /> Print receipt
+              </Button>
+              <div className="rounded-2xl border border-border bg-card px-5 py-3 text-right shadow-card">
+                <p className="text-xs font-medium text-muted-foreground">Total paid</p>
+                <p className="font-display text-2xl font-extrabold text-foreground">{formatMoney(total)}</p>
+              </div>
             </div>
           ) : undefined
         }

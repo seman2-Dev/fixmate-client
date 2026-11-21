@@ -73,6 +73,7 @@ export interface Booking {
   status: BookingStatus;
   finalAmount: number;
   paymentStatus: PaymentStatus;
+  statusHistory?: { status: BookingStatus | "paid"; changedAt: string }[];
   createdAt: string;
 }
 

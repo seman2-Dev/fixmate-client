@@ -349,6 +349,7 @@ export function createBooking(
     status: "requested",
     finalAmount: svc.basePrice,
     paymentStatus: "unpaid",
+    statusHistory: [{ status: "requested", changedAt: new Date().toISOString() }],
     createdAt: new Date().toISOString(),
   };
   commit({ ...state, bookings: [booking, ...state.bookings] });
@@ -362,7 +363,15 @@ export function cancelBooking(id: string, customerEmail: string): Result {
   if (b.status !== "requested") return fail("Only a requested job can be cancelled");
   commit({
     ...state,
-    bookings: state.bookings.map((x) => (x._id === id ? { ...x, status: "cancelled" as const } : x)),
+    bookings: state.bookings.map((x) =>
+      x._id === id
+        ? {
+            ...x,
+            status: "cancelled" as const,
+            statusHistory: [...(x.statusHistory ?? []), { status: "cancelled" as const, changedAt: new Date().toISOString() }],
+          }
+        : x,
+    ),
   });
   return { ok: true };
 }
@@ -392,7 +401,12 @@ export function updateBookingStatus(
     ...state,
     bookings: state.bookings.map((x) =>
       x._id === id
-        ? { ...x, status: next, finalAmount: next === "completed" ? finalAmount! : x.finalAmount }
+        ? {
+            ...x,
+            status: next,
+            finalAmount: next === "completed" ? finalAmount! : x.finalAmount,
+            statusHistory: [...(x.statusHistory ?? []), { status: next, changedAt: new Date().toISOString() }],
+          }
         : x,
     ),
   });
@@ -460,7 +474,13 @@ export function verifyCheckoutSession(
     ...state,
     payments: [payment, ...state.payments],
     bookings: state.bookings.map((b) =>
-      b._id === booking._id ? { ...b, paymentStatus: "paid" as const } : b,
+      b._id === booking._id
+        ? {
+            ...b,
+            paymentStatus: "paid" as const,
+            statusHistory: [...(b.statusHistory ?? []), { status: "paid" as const, changedAt: new Date().toISOString() }],
+          }
+        : b,
     ),
   });
   return { ok: true, data: payment };

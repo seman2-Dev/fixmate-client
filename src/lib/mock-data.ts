@@ -397,6 +397,22 @@ function booking(
   const pref = new Date(NOW + opts.preferredInDays * 86_400_000)
     .toISOString()
     .slice(0, 10);
+  const history: { status: Booking["status"] | "paid"; changedAt: string }[] = [
+    { status: "requested", changedAt: daysAgo(opts.daysAgo) },
+  ];
+  if (status !== "requested" && status !== "cancelled" && status !== "rejected") {
+    history.push({ status: "accepted", changedAt: daysAgo(Math.max(0, opts.daysAgo - 1)) });
+  }
+  if (status === "in-progress" || status === "completed") {
+    history.push({ status: "in-progress", changedAt: daysAgo(Math.max(0, opts.daysAgo - 2)) });
+  }
+  if (status === "completed") {
+    history.push({ status: "completed", changedAt: daysAgo(Math.max(0, opts.daysAgo - 3)) });
+  }
+  if (status === "rejected") history.push({ status: "rejected", changedAt: daysAgo(opts.daysAgo) });
+  if (status === "cancelled") history.push({ status: "cancelled", changedAt: daysAgo(opts.daysAgo) });
+  if (paid) history.push({ status: "paid", changedAt: daysAgo(Math.max(0, opts.daysAgo - 4)) });
+
   return {
     _id: `bk_${String(n).padStart(2, "0")}`,
     serviceId,
@@ -415,6 +431,7 @@ function booking(
     status,
     finalAmount: opts.finalAmount ?? svc.basePrice,
     paymentStatus: paid ? "paid" : "unpaid",
+    statusHistory: history,
     createdAt: daysAgo(opts.daysAgo),
   };
 }
