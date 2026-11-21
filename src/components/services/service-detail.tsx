@@ -63,7 +63,14 @@ export function ServiceDetail({ id }: { id: string }) {
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.45fr_1fr]">
         <div>
           <div className="group overflow-hidden rounded-3xl bg-secondary shadow-lift ring-1 ring-border">
-            <img src={service.image} alt={service.title} className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+            <img
+              src={service.image}
+              alt={service.title}
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+              className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            />
           </div>
 
           <div className="mt-8">

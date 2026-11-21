@@ -90,7 +90,13 @@ function load() {
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<DB>;
       if (parsed.users && parsed.services && parsed.bookings && parsed.payments) {
-        state = { ...seed, ...parsed } as DB;
+        const services = parsed.services.map((service) => {
+          if (!/\.svg(?:$|\?)/i.test(service.image)) return service;
+          const seeded = seed.services.find((candidate) => candidate._id === service._id);
+          return seeded ? { ...service, image: seeded.image } : service;
+        });
+        state = { ...seed, ...parsed, services } as DB;
+        persist();
       }
     }
   } catch {

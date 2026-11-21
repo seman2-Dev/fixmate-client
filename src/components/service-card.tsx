@@ -22,6 +22,9 @@ export function ServiceCard({ service }: { service: Service }) {
           src={service.image}
           alt=""
           loading="lazy"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
           className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
         <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink-950/55 to-transparent" />
