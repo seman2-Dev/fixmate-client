@@ -40,5 +40,5 @@ Run all three in that order before finishing; each passes on a clean tree. There
 
 ## Git notes
 
-- `git log` still ends at Phase 2 commits (BetterAuth, Atlas seed script) while the working tree intentionally deletes that scaffolding (`src/lib/auth*.ts`, `src/lib/mongo.ts`, `src/scripts/seed.ts`, `src/app/api/auth/`) and reverts the README to Phase 1. Don't resurrect those files or re-add `better-auth`/`mongodb`.
+- Phase 2 scaffolding (`src/lib/auth*.ts`, `src/lib/mongo.ts`, `src/scripts/seed.ts`, `src/app/api/auth/`) was deliberately removed and that removal is committed (06763fc); the tree is clean. Don't resurrect those files or re-add `better-auth`/`mongodb` — Phase 1 is intentionally mock-only.
 - `.gitignore`'s `.env*` pattern also ignores `.env.example`, so it stays untracked — that's expected, not a mistake to fix.

@@ -379,3 +379,51 @@
   .stack-table td[data-label=""]::before { display: none; }
   .stack-table td[data-label=""] { justify-content: flex-start; flex-wrap: wrap; }
 }
+
+
+/* Hero slideshow: crossfade + Ken Burns. Written for 4 slides (each visible 25% of the cycle). */
+@keyframes fm-hero-slide {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  4% {
+    opacity: 1;
+  }
+
+  /* fade in while the previous one fades out */
+  25% {
+    opacity: 1;
+  }
+
+  29% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
+.hero-slide {
+  opacity: 0;
+  animation-name: fm-hero-slide;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide {
+    animation: none !important;
+    transform: none;
+  }
+
+  .hero-slide:first-child {
+    opacity: 1;
+  }
+}
