@@ -14,10 +14,36 @@ const client = new MongoClient(mongoUri);
 const db = client.db(process.env.DB_NAME || "fixmatedb");
 const googleClientId = process.env.BETTER_AUTH_GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.BETTER_AUTH_GOOGLE_CLIENT_SECRET;
+const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+const productionUrl = vercelUrl ? `https://${vercelUrl.replace(/^https?:\/\//, "")}` : undefined;
+const configuredUrl =
+  process.env.BETTER_AUTH_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  productionUrl ||
+  "http://localhost:3000";
+const trustedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  ...(productionUrl ? [productionUrl] : []),
+  ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS
+    ?.split(",")
+    .map((origin) => origin.trim().replace(/\/+$/, ""))
+    .filter(Boolean) || []),
+];
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL,
+  baseURL: {
+    allowedHosts: [
+      "localhost:3000",
+      "127.0.0.1:3000",
+      "fixmate-client.vercel.app",
+      "*.vercel.app",
+    ],
+    protocol: "auto",
+    fallback: configuredUrl,
+  },
   secret: process.env.BETTER_AUTH_SECRET,
+  trustedOrigins,
 
   emailAndPassword: {
     enabled: true,
