@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 import { ArrowRight, BadgeCheck, Check, Search, ShieldCheck, Smartphone, Wallet, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES } from "@/lib/types";
+import { HeroSlideshow } from "@/components/home/hero-slideshow";
 
 const TRACK = [
   { label: "Requested", done: true },
@@ -15,83 +16,83 @@ const TRACK = [
 ];
 
 /** A live-looking "repair ticket" that explains the product at a glance. */
-function JobTicket() {
-  return (
-    <div className="relative mx-auto w-full max-w-[460px] pb-10 lg:pb-0">
-      <div aria-hidden className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-brand-500/30 via-brand-500/5 to-transparent blur-2xl" />
-      <div className="animate-float relative rounded-3xl bg-white p-6 text-ink-900 shadow-pop ring-1 ring-white/20">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-700">
-              <Smartphone className="size-6" />
-            </span>
-            <div>
-              <p className="text-xs font-semibold tracking-wider text-ink-500 uppercase">Repair ticket · #FM-2041</p>
-              <p className="font-display text-lg leading-tight font-extrabold">iPhone screen replacement</p>
-            </div>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-amber-800 ring-1 ring-amber-200 ring-inset">
-            <span className="size-1.5 rounded-full bg-current" /> In Progress
-          </span>
-        </div>
+// function JobTicket() {
+//   return (
+//     <div className="relative mx-auto w-full max-w-[460px] pb-10 lg:pb-0">
+//       <div aria-hidden className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-brand-500/30 via-brand-500/5 to-transparent blur-2xl" />
+//       <div className="animate-float relative rounded-3xl bg-white p-6 text-ink-900 shadow-pop ring-1 ring-white/20">
+//         <div className="flex items-start justify-between gap-4">
+//           <div className="flex items-center gap-3">
+//             <span className="grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-700">
+//               <Smartphone className="size-6" />
+//             </span>
+//             <div>
+//               <p className="text-xs font-semibold tracking-wider text-ink-500 uppercase">Repair ticket · #FM-2041</p>
+//               <p className="font-display text-lg leading-tight font-extrabold">iPhone screen replacement</p>
+//             </div>
+//           </div>
+//           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-amber-800 ring-1 ring-amber-200 ring-inset">
+//             <span className="size-1.5 rounded-full bg-current" /> In Progress
+//           </span>
+//         </div>
 
-        <ol className="relative mt-7 grid grid-cols-4 gap-1" aria-label="Job progress">
-          <span aria-hidden className="absolute top-[13px] right-[12.5%] left-[12.5%] h-0.5 bg-ink-100" />
-          <span
-            aria-hidden
-            className="absolute top-[13px] left-[12.5%] h-0.5 w-[50%] origin-left bg-primary"
-            style={{ animation: "fm-grow-x 1.2s .6s cubic-bezier(.22,1,.36,1) both" }}
-          />
-          {TRACK.map((s) => (
-            <li key={s.label} className="relative flex flex-col items-center gap-2 text-center">
-              <span
-                className={
-                  "relative z-10 grid size-7 place-items-center rounded-full text-white ring-4 ring-white " +
-                  (s.done ? "bg-primary" : s.active ? "bg-amber-500" : "bg-ink-200")
-                }
-              >
-                {s.done ? <Check className="size-4" strokeWidth={3} /> : s.active ? <Wrench className="size-3.5" /> : null}
-                {s.active && <span aria-hidden className="animate-pulse-ring absolute inset-0 rounded-full" />}
-              </span>
-              <span className={"text-[11px] leading-tight font-semibold " + (s.active ? "text-ink-900" : s.done ? "text-ink-700" : "text-ink-400")}>
-                {s.label}
-              </span>
-            </li>
-          ))}
-        </ol>
+//         <ol className="relative mt-7 grid grid-cols-4 gap-1" aria-label="Job progress">
+//           <span aria-hidden className="absolute top-[13px] right-[12.5%] left-[12.5%] h-0.5 bg-ink-100" />
+//           <span
+//             aria-hidden
+//             className="absolute top-[13px] left-[12.5%] h-0.5 w-[50%] origin-left bg-primary"
+//             style={{ animation: "fm-grow-x 1.2s .6s cubic-bezier(.22,1,.36,1) both" }}
+//           />
+//           {TRACK.map((s) => (
+//             <li key={s.label} className="relative flex flex-col items-center gap-2 text-center">
+//               <span
+//                 className={
+//                   "relative z-10 grid size-7 place-items-center rounded-full text-white ring-4 ring-white " +
+//                   (s.done ? "bg-primary" : s.active ? "bg-amber-500" : "bg-ink-200")
+//                 }
+//               >
+//                 {s.done ? <Check className="size-4" strokeWidth={3} /> : s.active ? <Wrench className="size-3.5" /> : null}
+//                 {s.active && <span aria-hidden className="animate-pulse-ring absolute inset-0 rounded-full" />}
+//               </span>
+//               <span className={"text-[11px] leading-tight font-semibold " + (s.active ? "text-ink-900" : s.done ? "text-ink-700" : "text-ink-400")}>
+//                 {s.label}
+//               </span>
+//             </li>
+//           ))}
+//         </ol>
 
-        <div className="mt-7 flex items-center justify-between rounded-2xl bg-secondary p-4">
-          <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-full bg-ink-900 text-sm font-bold text-white">RA</span>
-            <div>
-              <p className="text-sm font-bold">Rafiq Ahmed</p>
-              <p className="flex items-center gap-1 text-xs text-ink-500">
-                <BadgeCheck className="size-3.5 text-emerald-600" /> Verified technician
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-[11px] font-semibold tracking-wider text-ink-500 uppercase">Pay after</p>
-            <p className="font-display text-lg font-extrabold">$85</p>
-          </div>
-        </div>
-      </div>
+//         <div className="mt-7 flex items-center justify-between rounded-2xl bg-secondary p-4">
+//           <div className="flex items-center gap-3">
+//             <span className="grid size-10 place-items-center rounded-full bg-ink-900 text-sm font-bold text-white">RA</span>
+//             <div>
+//               <p className="text-sm font-bold">Rafiq Ahmed</p>
+//               <p className="flex items-center gap-1 text-xs text-ink-500">
+//                 <BadgeCheck className="size-3.5 text-emerald-600" /> Verified technician
+//               </p>
+//             </div>
+//           </div>
+//           <div className="text-right">
+//             <p className="text-[11px] font-semibold tracking-wider text-ink-500 uppercase">Pay after</p>
+//             <p className="font-display text-lg font-extrabold">$85</p>
+//           </div>
+//         </div>
+//       </div>
 
-      <div
-        className="animate-float absolute -bottom-0 -left-2 flex items-center gap-3 rounded-2xl bg-white p-3 pr-5 text-ink-900 shadow-pop sm:-left-8"
-        style={{ animationDelay: "1.6s" }}
-      >
-        <span className="grid size-10 place-items-center rounded-xl bg-emerald-100 text-emerald-700">
-          <Wallet className="size-5" />
-        </span>
-        <div>
-          <p className="text-[11px] font-semibold tracking-wider text-ink-500 uppercase">Payment</p>
-          <p className="text-sm font-extrabold">Only after completion</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+//       <div
+//         className="animate-float absolute -bottom-0 -left-2 flex items-center gap-3 rounded-2xl bg-white p-3 pr-5 text-ink-900 shadow-pop sm:-left-8"
+//         style={{ animationDelay: "1.6s" }}
+//       >
+//         <span className="grid size-10 place-items-center rounded-xl bg-emerald-100 text-emerald-700">
+//           <Wallet className="size-5" />
+//         </span>
+//         <div>
+//           <p className="text-[11px] font-semibold tracking-wider text-ink-500 uppercase">Payment</p>
+//           <p className="text-sm font-extrabold">Only after completion</p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 export function Hero() {
   const router = useRouter();
@@ -171,9 +172,9 @@ export function Hero() {
             </Link>
           </p>
         </div>
-
+        <HeroSlideshow />
         <div className="page-enter [animation-delay:.35s]">
-          <JobTicket />
+          {/* <JobTicket /> */}
         </div>
       </div>
     </section>
