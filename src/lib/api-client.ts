@@ -4,7 +4,7 @@ import { authClient } from "./auth-client";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ||
-  (process.env.NEXT_PUBLIC_VERCEL_ENV ? "https://fixmate-server1.vercel.app" : "http://localhost:5000");
+  "https://fixmate-server1.vercel.app";
 
 export class ApiError extends Error {
   constructor(
