@@ -34,6 +34,7 @@ export function ServicesBrowser() {
   const params = useSearchParams();
   const [results, setResults] = useState<Service[]>([]);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const q = params.get("q") ?? "";
@@ -75,10 +76,16 @@ export function ServicesBrowser() {
     query.set("sort", sort);
     apiRequest<Service[]>(`/api/services?${query.toString()}`)
       .then((result) => {
-        if (active) setResults(result);
+        if (active) {
+          setResults(result);
+          setError("");
+        }
       })
-      .catch(() => {
-        if (active) setResults([]);
+      .catch((requestError) => {
+        if (active) {
+          setResults([]);
+          setError(requestError instanceof Error ? requestError.message : "Could not load repair services.");
+        }
       })
       .finally(() => {
         if (active) setReady(true);
@@ -193,8 +200,8 @@ export function ServicesBrowser() {
       ) : results.length === 0 ? (
         <EmptyState
           icon={PackageSearch}
-          title="No services match your search"
-          message="Try a different keyword, switch the category or service mode, or clear all filters to see everything."
+          title={error ? "Could not load services" : "No services match your search"}
+          message={error || "Try a different keyword, switch the category or service mode, or clear all filters to see everything."}
           actionLabel="Clear all filters"
           onAction={clearAll}
         />

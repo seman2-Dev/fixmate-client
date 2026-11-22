@@ -13,15 +13,22 @@ import { useEffect, useState } from "react";
 export function FeaturedServices() {
   const [services, setServices] = useState<Service[]>([]);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
     apiRequest<Service[]>("/api/services?limit=6")
       .then((result) => {
-        if (active) setServices(result);
+        if (active) {
+          setServices(result);
+          setError("");
+        }
       })
-      .catch(() => {
-        if (active) setServices([]);
+      .catch((requestError) => {
+        if (active) {
+          setServices([]);
+          setError(requestError instanceof Error ? requestError.message : "Could not load repair services.");
+        }
       })
       .finally(() => {
         if (active) setReady(true);
@@ -58,8 +65,8 @@ export function FeaturedServices() {
             ) : services.length === 0 ? (
               <div className="sm:col-span-2 lg:col-span-3">
                 <EmptyState
-                  title="No services listed yet"
-                  message="Approved services will appear here as soon as technicians publish them."
+                  title={error ? "Could not load services" : "No services listed yet"}
+                  message={error || "Approved services will appear here as soon as technicians publish them."}
                   actionLabel="Browse services"
                   actionHref="/services"
                 />

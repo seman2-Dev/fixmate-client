@@ -8,7 +8,7 @@ On-demand device & home appliance repair booking platform. Verified **technician
 
 > **Status: Full-stack.** The Next.js client uses BetterAuth, and data/payment workflows call the Express + MongoDB API with JWT role middleware and Stripe.
 
-- **Live URL:** https://fixmate-client.vercel.app
+- **Live URL:** https://fixmate-client1.vercel.app
 - **Server repository:** https://github.com/seman2-Dev/fixmate-server
 - **Server API:** https://fixmate-server1.vercel.app
 

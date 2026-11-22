@@ -2,9 +2,16 @@
 
 import { authClient } from "./auth-client";
 
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+const productionApiUrl = "https://fixmate-server1.vercel.app";
+
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ||
-  "https://fixmate-server1.vercel.app";
+  typeof window !== "undefined" &&
+  window.location.hostname !== "localhost" &&
+  window.location.hostname !== "127.0.0.1" &&
+  /^https?:\/\/(?:localhost|127\.0\.0\.1)(:\d+)?$/.test(configuredApiUrl || "")
+    ? productionApiUrl
+    : configuredApiUrl || productionApiUrl;
 
 export class ApiError extends Error {
   constructor(
@@ -40,10 +47,20 @@ export async function apiRequest<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new ApiError(
+      error instanceof Error
+        ? `Could not reach FixMate API: ${error.message}`
+        : "Could not reach FixMate API",
+      0,
+    );
+  }
   const body = await response.json().catch(() => ({}));
 
   if (!response.ok) {
