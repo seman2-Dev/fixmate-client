@@ -24,7 +24,9 @@ export function useSession() {
         name: rawUser.name,
         email: rawUser.email,
         image: rawUser.image || "",
-        role: rawUser.role || "customer",
+        role: (["customer", "technician", "admin"].includes(rawUser.role || "")
+          ? rawUser.role?.toLowerCase()
+          : "customer") as Role,
         phone: rawUser.phone || "",
         area: rawUser.area || "",
         bio: rawUser.bio || "",
