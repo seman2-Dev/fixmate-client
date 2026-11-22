@@ -14,13 +14,11 @@ On-demand device & home appliance repair booking platform. Verified **technician
 
 ## Demo credentials
 
-All demo accounts use the password `FixMate1`.
-
-| Role | Email |
-| --- | --- |
-| Admin | `admin@fixmate.dev` |
-| Technician | `rafiq@fixmate.dev` (also `nusrat@fixmate.dev`, `imran@fixmate.dev`) |
-| Customer | `ayesha@fixmate.dev` (also `tanvir@fixmate.dev`, `sadia@fixmate.dev`) |
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@fixmate.dev` | `FixMate1@admin` |
+| Technician | `rafiq@fixmate.dev` | `FixMate1@technician` |
+| Customer | `emran@fixmate.dev` | `FixMate1@customer` |
 
 Payment test card (mock checkout, same as Stripe test mode): `4242 4242 4242 4242`, any future date, any CVC.
 
