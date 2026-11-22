@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { ClipboardList, CreditCard, Hammer, CheckCircle2 } from "lucide-react";
 import { ChartCard, DonutChart } from "@/components/charts";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -8,15 +10,26 @@ import { useDashboardUser } from "@/components/dashboard/user-context";
 import { BookingBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
-import { useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
+import type { Booking } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function CustomerOverview() {
   const user = useDashboardUser();
-  const db = useDB();
-  const mine = db.bookings.filter((b) => b.customerEmail === user.email);
+  const [mine, setMine] = useState<Booking[]>([]);
+  useEffect(() => {
+    let active = true;
+    apiRequest<Booking[]>("/api/bookings/my", { protectedRequest: true })
+      .then((rows) => {
+        if (active) setMine(rows);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load overview"));
+    return () => {
+      active = false;
+    };
+  }, []);
   const active = mine.filter((b) => ["requested", "accepted", "in-progress"].includes(b.status));
   const completed = mine.filter((b) => b.status === "completed");
   const toPay = completed.filter((b) => b.paymentStatus === "unpaid");

@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# FixMate client — Phase 1 (frontend only)
+# FixMate client — Full-stack Next.js app
 
 Next.js 16.4.6 App Router + React 19 + TypeScript + Tailwind 4, single app (no workspace/monorepo). Product and feature docs live in `README.md`; this file covers what isn't obvious from reading it.
 
@@ -22,11 +22,11 @@ npm run build         # succeeds with no backend or env vars
 
 Run all three in that order before finishing; each passes on a clean tree. There is **no test runner** of any kind — don't look for one. `npm run dev` is the Turbopack dev server on :3000. Next.js itself has breaking changes vs. your training data: read `node_modules/next/dist/docs/` before writing Next-specific code (see managed block above; `next dev` rewrites only that marker-delimited block, so edit and commit the rest of this file freely).
 
-## Everything is a client-side mock
+## Data and authentication
 
-- All data, auth and payments run through `src/lib/mock-db.ts`, persisted to `localStorage["fixmate-mock-db-v1"]`; seed rows are in `src/lib/mock-data.ts`. No `process.env` reads exist anywhere in `src/` — Phase 1 needs zero configuration.
-- Every mutation returns `{ ok, error }` (or `{ ok: true, data }`) shaped like a future API response, and each call site carries a `// Phase 2: <method> <endpoint>` comment naming the endpoint it will become. Preserve both conventions when adding features.
-- `load()` merges `{ ...seed, ...stored }`, so a browser's existing localStorage **overrides edited seed data**. After changing seeds, clear the key or bump `STORAGE_KEY` to see the new rows.
+- BetterAuth owns sign-up, sign-in, profile sessions and JWT issuance. The Express server owns protected business data and Stripe operations.
+- Public and dashboard data is read from `NEXT_PUBLIC_API_URL` through `src/lib/api-client.ts`, with JWT bearer tokens obtained from BetterAuth.
+- Keep mutation responses explicit and surface API errors with toasts. Do not return to the legacy `src/lib/mock-db.ts` as an application data source.
 - Session: `useSession()` returns `{ user, ready }`. Guards (`DashboardShell`, `RequireRole`) must wait for `ready` before redirecting — redirecting on `!user` alone bounces signed-in users to `/sign-in` whenever a private route reloads.
 - Demo login: password `FixMate1` (`DEMO_PASSWORD` in `src/lib/mock-data.ts`); emails listed in README and hardcoded in `src/components/auth/sign-in-form.tsx`.
 
@@ -40,5 +40,5 @@ Run all three in that order before finishing; each passes on a clean tree. There
 
 ## Git notes
 
-- Phase 2 scaffolding (`src/lib/auth*.ts`, `src/lib/mongo.ts`, `src/scripts/seed.ts`, `src/app/api/auth/`) was deliberately removed and that removal is committed (06763fc); the tree is clean. Don't resurrect those files or re-add `better-auth`/`mongodb` — Phase 1 is intentionally mock-only.
+- BetterAuth and MongoDB are intentional Phase 2 dependencies in the client (`src/lib/auth.ts`, `src/lib/auth-client.ts`, and `src/app/api/auth/[...all]/route.ts`). Never move business mutations into Next.js API routes; Express owns bookings, services, payments and moderation.
 - `.gitignore`'s `.env*` pattern also ignores `.env.example`, so it stays untracked — that's expected, not a mistake to fix.

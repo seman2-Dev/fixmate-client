@@ -6,14 +6,30 @@ import { ServiceCard, ServiceCardSkeleton } from "@/components/service-card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Reveal } from "@/components/ui/reveal";
-import { useDB, useHydrated } from "@/lib/mock-db";
-import { latestServices } from "@/lib/services-query";
+import { apiRequest } from "@/lib/api-client";
+import type { Service } from "@/lib/types";
+import { useEffect, useState } from "react";
 
 export function FeaturedServices() {
-  const db = useDB();
-  const ready = useHydrated();
-  // Phase 2: GET /api/services?limit=6 -> .sort({ createdAt: -1 }).limit(6)
-  const services = latestServices(db.services, 6);
+  const [services, setServices] = useState<Service[]>([]);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    apiRequest<Service[]>("/api/services?limit=6")
+      .then((result) => {
+        if (active) setServices(result);
+      })
+      .catch(() => {
+        if (active) setServices([]);
+      })
+      .finally(() => {
+        if (active) setReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <section className="relative z-10 -mt-16 pb-20 sm:-mt-20">

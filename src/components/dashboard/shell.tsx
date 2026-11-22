@@ -39,7 +39,7 @@ import {
 import { Logo } from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { dashboardPathFor } from "@/lib/mock-db";
+import { dashboardPathFor } from "@/lib/redirect";
 import { signOut } from "@/lib/auth-client";
 import type { Role } from "@/lib/types";
 import { useSession } from "@/lib/use-session";

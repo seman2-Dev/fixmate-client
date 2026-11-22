@@ -1,9 +1,11 @@
 "use client";
 
 import { Receipt, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import { formatDate, formatMoney } from "@/lib/utils";
 import type { Payment } from "@/lib/types";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -25,9 +27,20 @@ const columns: ColumnDef<Payment>[] = [
 ];
 
 export default function AdminTransactionsPage() {
-  const db = useDB();
-  const rows = db.payments.slice().sort((a, b) => +new Date(b.paidAt) - +new Date(a.paidAt));
-  const total = rows.reduce((s, p) => s + p.amount, 0);
+  const [result, setResult] = useState<{ totalRevenue: number; payments: Payment[] }>({ totalRevenue: 0, payments: [] });
+  useEffect(() => {
+    let active = true;
+    apiRequest<{ totalRevenue: number; payments: Payment[] }>("/api/admin/payments", { protectedRequest: true })
+      .then((data) => {
+        if (active) setResult(data);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load transactions"));
+    return () => {
+      active = false;
+    };
+  }, []);
+  const rows = result.payments.slice().sort((a, b) => +new Date(b.paidAt) - +new Date(a.paidAt));
+  const total = result.totalRevenue;
 
   return (
     <>

@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Boxes, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -10,7 +10,7 @@ import { ServiceForm } from "@/components/technician/service-form";
 import { ApprovalBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
-import { deleteService, toggleAvailability, updateService, useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import type { Service } from "@/lib/types";
 import { cn, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,25 +19,47 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export default function MyServicesPage() {
   const user = useDashboardUser();
-  const db = useDB();
+  const [mine, setMine] = useState<Service[]>([]);
   const [editing, setEditing] = useState<Service | null>(null);
   const [deleting, setDeleting] = useState<Service | null>(null);
-  const mine = db.services.filter((s) => s.technicianEmail === user.email);
 
-  function toggle(s: Service) {
-    // Phase 2: PATCH /api/services/:id (isAvailable)
-    const res = toggleAvailability(s._id, user.email);
-    if (!res.ok) return toast.error(res.error);
-    toast.success(res.data ? "Service is now available" : "Service hidden from public pages");
+  useEffect(() => {
+    let active = true;
+    apiRequest<Service[]>("/api/services/mine", { protectedRequest: true })
+      .then((result) => {
+        if (active) setMine(result);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load services"));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function toggle(s: Service) {
+    try {
+      await apiRequest(`/api/services/${s._id}`, {
+        protectedRequest: true,
+        method: "PATCH",
+        body: JSON.stringify({ isAvailable: !s.isAvailable }),
+      });
+      setMine((rows) => rows.map((row) => row._id === s._id ? { ...row, isAvailable: !row.isAvailable } : row));
+      toast.success(!s.isAvailable ? "Service is now available" : "Service hidden from public pages");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update availability");
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleting) return;
-    // Phase 2: DELETE /api/services/:id
-    const res = deleteService(deleting._id, user.email);
-    if (res.ok) toast.success("Service deleted");
-    else toast.error(res.error);
-    setDeleting(null);
+    try {
+      await apiRequest(`/api/services/${deleting._id}`, { protectedRequest: true, method: "DELETE" });
+      setMine((rows) => rows.filter((row) => row._id !== deleting._id));
+      toast.success("Service deleted");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete service");
+    } finally {
+      setDeleting(null);
+    }
   }
 
   return (
@@ -110,12 +132,19 @@ export default function MyServicesPage() {
             initial={editing}
             submitLabel="Save and resubmit"
             onCancel={() => setEditing(null)}
-            onSubmit={(values) => {
-              // Phase 2: PATCH /api/services/:id (approvalStatus resets to pending on the server)
-              const res = updateService(editing._id, user.email, values);
-              if (!res.ok) return toast.error(res.error);
-              toast.success("Service updated", { description: "It is pending admin approval again." });
-              setEditing(null);
+            onSubmit={async (values) => {
+              try {
+                await apiRequest(`/api/services/${editing._id}`, {
+                  protectedRequest: true,
+                  method: "PATCH",
+                  body: JSON.stringify(values),
+                });
+                setMine((rows) => rows.map((row) => row._id === editing._id ? { ...row, ...values, approvalStatus: "pending" } : row));
+                toast.success("Service updated", { description: "It is pending admin approval again." });
+                setEditing(null);
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Could not update service");
+              }
             }}
           />
         )}

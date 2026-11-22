@@ -4,8 +4,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { ServiceInput } from "@/lib/mock-db";
-import { CATEGORIES, SERVICE_MODES, type Category, type ServiceMode, type User } from "@/lib/types";
+import { CATEGORIES, SERVICE_MODES, type Category, type ServiceInput, type ServiceMode, type User } from "@/lib/types";
 import { uploadImage } from "@/lib/upload-image";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

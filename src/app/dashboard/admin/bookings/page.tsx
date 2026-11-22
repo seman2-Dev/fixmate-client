@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { BookingBadge, PaymentBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
+import { toast } from "sonner";
 import type { BookingStatus } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,9 +41,21 @@ const columns: ColumnDef<Booking>[] = [
 ];
 
 export default function AdminBookingsPage() {
-  const db = useDB();
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["value"]>("all");
-  const rows = db.bookings.filter((b) => filter === "all" || b.status === filter);
+  useEffect(() => {
+    let active = true;
+    const query = filter === "all" ? "" : `?status=${encodeURIComponent(filter)}`;
+    apiRequest<Booking[]>(`/api/admin/bookings${query}`, { protectedRequest: true })
+      .then((result) => {
+        if (active) setBookings(result);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load bookings"));
+    return () => {
+      active = false;
+    };
+  }, [filter]);
+  const rows = bookings;
 
   return (
     <>

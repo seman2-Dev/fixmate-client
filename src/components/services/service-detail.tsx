@@ -3,7 +3,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { useState } from "react";
 import { ArrowLeft, Clock, Home, Info, MapPin, ShieldCheck, Store, Tag, Wallet } from "lucide-react";
 import { RequestRepairModal } from "@/components/services/request-repair-modal";
 import { Badge } from "@/components/ui/badge";
@@ -11,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar } from "@/components/ui/avatar";
-import { useDB, useHydrated } from "@/lib/mock-db";
-import { isPublic } from "@/lib/services-query";
 import { useSession } from "@/lib/use-session";
 import { formatUSD } from "@/lib/utils";
+import { apiRequest } from "@/lib/api-client";
+import type { Service, User } from "@/lib/types";
+import { useEffect, useState } from "react";
 
 function DetailSkeleton() {
   return (
@@ -31,17 +31,33 @@ function DetailSkeleton() {
 }
 
 export function ServiceDetail({ id }: { id: string }) {
-  const db = useDB();
-  const ready = useHydrated();
+  const [service, setService] = useState<(Service & { technician?: Partial<User> }) | null>(null);
+  const [ready, setReady] = useState(false);
+  const [missing, setMissing] = useState(false);
   const { user } = useSession();
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    apiRequest<Service & { technician?: Partial<User> }>(`/api/services/${id}`)
+      .then((result) => {
+        if (active) setService(result);
+      })
+      .catch((error) => {
+        if (active) setMissing(error instanceof Error && "status" in error);
+      })
+      .finally(() => {
+        if (active) setReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
   if (!ready) return <DetailSkeleton />;
+  if (missing || !service) notFound();
 
-  const service = db.services.find((s) => s._id === id);
-  if (!service || !isPublic(service)) notFound();
-
-  const tech = db.users.find((u) => u.email === service.technicianEmail);
+  const tech = service.technician;
   const ModeIcon = service.serviceMode === "Home Visit" ? Home : Store;
 
   const facts = [

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useDashboardUser } from "@/components/dashboard/user-context";
 import { ServiceForm } from "@/components/technician/service-form";
-import { addService } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import { Card } from "@/components/ui/card";
 
 export default function AddServicePage() {
@@ -26,12 +26,19 @@ export default function AddServicePage() {
         <ServiceForm
           tech={user}
           submitLabel="Submit for approval"
-          onSubmit={(values) => {
+          onSubmit={async (values) => {
             // Phase 2: POST /api/services (verifyToken + verifyTechnician)
-            const res = addService(user, values);
-            if (!res.ok) return toast.error(res.error);
-            toast.success("Service submitted", { description: "It is waiting for admin approval." });
-            router.push("/dashboard/technician/my-services");
+            try {
+              await apiRequest("/api/services", {
+                protectedRequest: true,
+                method: "POST",
+                body: JSON.stringify(values),
+              });
+              toast.success("Service submitted", { description: "It is waiting for admin approval." });
+              router.push("/dashboard/technician/my-services");
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "Could not submit service");
+            }
           }}
         />
       </Card>

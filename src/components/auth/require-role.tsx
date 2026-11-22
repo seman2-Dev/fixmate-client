@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { dashboardPathFor } from "@/lib/mock-db";
+import { dashboardPathFor } from "@/lib/redirect";
 import type { Role, User } from "@/lib/types";
 import { useSession } from "@/lib/use-session";
 

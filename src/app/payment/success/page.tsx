@@ -2,47 +2,47 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Printer, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { RequireRole } from "@/components/auth/require-role";
-import { getCheckoutSession, useDB, verifyCheckoutSession } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
+import type { Payment } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function PaymentSuccessPage() {
-  return (
-    <RequireRole role="customer">{(user) => <Verify email={user.email} />}</RequireRole>
-  );
+  return <RequireRole role="customer">{() => <Verify />}</RequireRole>;
 }
 
-function Verify({ email }: { email: string }) {
+function Verify() {
   const sessionId = useSearchParams().get("session_id") ?? "";
-  const db = useDB();
   const ran = useRef(false);
-
-  // The result is derived from the database; the effect only performs the (idempotent) verification.
-  const payment = db.payments.find((p) => p.stripeSessionId === sessionId);
-  const found = getCheckoutSession(sessionId);
-  const error = payment
-    ? null
-    : !sessionId || !found
-      ? "Payment session not found"
-      : found.session.customerEmail !== email
-        ? "This payment belongs to another account"
-        : null;
+  const [payment, setPayment] = useState<Payment | null>(null);
+  const [error, setError] = useState<string | null>(sessionId ? null : "Payment session not found");
+  const [ready, setReady] = useState(!sessionId);
 
   useEffect(() => {
     if (ran.current) return;
     ran.current = true;
-    // Phase 2: GET /api/payments/verify?session_id=... (idempotent: never saves the same payment twice)
-    const res = sessionId ? verifyCheckoutSession(sessionId, email) : null;
-    if (res?.ok) toast.success("Payment received. Thank you!");
-    else toast.error(res && !res.ok ? res.error : "Payment session not found");
-  }, [sessionId, email]);
+    if (!sessionId) {
+      return;
+    }
+    apiRequest<Payment>(`/api/payments/verify?session_id=${encodeURIComponent(sessionId)}`, { protectedRequest: true })
+      .then((result) => {
+        setPayment(result);
+        toast.success("Payment received. Thank you!");
+      })
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : "Could not verify payment";
+        setError(message);
+        toast.error(message);
+      })
+      .finally(() => setReady(true));
+  }, [sessionId]);
 
-  if (!payment && !error) return <div className="skeleton h-72 w-full max-w-lg" />;
+  if (!ready) return <div className="skeleton h-72 w-full max-w-lg" />;
   if (!payment) {
     return (
       <Card className="gap-0 py-0 w-full max-w-lg p-8 text-center sm:p-10">

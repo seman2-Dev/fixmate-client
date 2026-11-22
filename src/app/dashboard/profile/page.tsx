@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { useDashboardUser } from "@/components/dashboard/user-context";
 import { Avatar } from "@/components/ui/avatar";
 import { RoleBadge } from "@/components/ui/badges";
-import { updateProfile } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import { uploadImage } from "@/lib/upload-image";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -38,14 +38,20 @@ export default function ProfilePage() {
     }
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (name.trim().length < 2) return setNameError("Name must be at least 2 characters");
     setNameError("");
-    // Phase 2: PATCH /api/users/profile (verifyToken)
-    const res = updateProfile(user.email, { name, phone, area, bio, image });
-    if (res.ok) toast.success("Profile updated");
-    else toast.error(res.error);
+    try {
+      await apiRequest("/api/users/profile", {
+        protectedRequest: true,
+        method: "PATCH",
+        body: JSON.stringify({ name, phone, area, bio, image }),
+      });
+      toast.success("Profile updated");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update profile");
+    }
   }
 
   return (

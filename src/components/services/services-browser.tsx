@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PackageSearch, Search, SlidersHorizontal, X } from "lucide-react";
 import { ServiceCard, ServiceCardSkeleton } from "@/components/service-card";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useDB, useHydrated } from "@/lib/mock-db";
-import { queryServices } from "@/lib/services-query";
 import { CATEGORIES, SERVICE_MODES, type ServiceQuery } from "@/lib/types";
+import type { Service } from "@/lib/types";
+import { apiRequest } from "@/lib/api-client";
 
 const ALL = "__all__";
 
@@ -32,8 +32,8 @@ export function ServicesBrowser() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const db = useDB();
-  const ready = useHydrated();
+  const [results, setResults] = useState<Service[]>([]);
+  const [ready, setReady] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const q = params.get("q") ?? "";
@@ -66,7 +66,27 @@ export function ServicesBrowser() {
   const clearAll = () => router.replace(pathname, { scroll: false });
   const hasFilters = Boolean(q || category || mode || sort !== "newest");
 
-  const results = queryServices(db.services, { q, category, mode, sort });
+  useEffect(() => {
+    let active = true;
+    const query = new URLSearchParams();
+    if (q) query.set("q", q);
+    if (category) query.set("category", category);
+    if (mode) query.set("mode", mode);
+    query.set("sort", sort);
+    apiRequest<Service[]>(`/api/services?${query.toString()}`)
+      .then((result) => {
+        if (active) setResults(result);
+      })
+      .catch(() => {
+        if (active) setResults([]);
+      })
+      .finally(() => {
+        if (active) setReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [q, category, mode, sort]);
 
   return (
     <>

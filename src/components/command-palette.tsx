@@ -8,10 +8,9 @@ import { NAV } from "@/components/dashboard/shell";
 import { useTheme } from "@/components/theme";
 import { Button } from "@/components/ui/button";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import { signOut } from "@/lib/auth-client";
-import { isPublic } from "@/lib/services-query";
-import { CATEGORIES } from "@/lib/types";
+import { CATEGORIES, type Service } from "@/lib/types";
 import { useSession } from "@/lib/use-session";
 import { formatUSD } from "@/lib/utils";
 
@@ -44,9 +43,23 @@ export function PaletteTrigger({ compact }: { compact?: boolean }) {
 export function CommandPalette() {
   const router = useRouter();
   const { user } = useSession();
-  const db = useDB();
   const { theme, toggle } = useTheme();
   const [open, setOpen] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    apiRequest<Service[]>("/api/services")
+      .then((result) => {
+        if (active) setServices(result);
+      })
+      .catch(() => {
+        if (active) setServices([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -71,8 +84,6 @@ export function CommandPalette() {
     },
     [router],
   );
-
-  const services = db.services.filter(isPublic);
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen} title="Search FixMate" description="Search services, pages and actions">

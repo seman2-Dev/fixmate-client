@@ -2,14 +2,15 @@
 
 import { Printer, Receipt } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { useDashboardUser } from "@/components/dashboard/user-context";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import { formatDate, formatMoney } from "@/lib/utils";
 import type { Payment } from "@/lib/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const columns: ColumnDef<Payment>[] = [
   { id: "Service", header: "Service", accessorFn: (p) => p.serviceTitle, cell: ({ row }) => <span className="font-bold text-foreground">{row.original.serviceTitle}</span> },
@@ -26,10 +27,21 @@ const columns: ColumnDef<Payment>[] = [
 ];
 
 export default function CustomerPaymentsPage() {
-  const user = useDashboardUser();
-  const db = useDB();
-  const mine = db.payments
-    .filter((p) => p.customerEmail === user.email)
+  const [mine, setMine] = useState<Payment[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    apiRequest<Payment[]>("/api/payments/my", { protectedRequest: true })
+      .then((result) => {
+        if (active) setMine(result);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load payments"));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const sortedMine = [...mine]
     .sort((a, b) => +new Date(b.paidAt) - +new Date(a.paidAt));
   const total = mine.reduce((s, p) => s + p.amount, 0);
 
@@ -62,7 +74,7 @@ export default function CustomerPaymentsPage() {
           actionHref="/dashboard/customer/bookings"
         />
       ) : (
-        <DataTable columns={columns} data={mine} initialSort={[{ id: "Paid on", desc: true }]} />
+        <DataTable columns={columns} data={sortedMine} initialSort={[{ id: "Paid on", desc: true }]} />
       )}
     </>
   );

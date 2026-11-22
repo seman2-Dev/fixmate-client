@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Boxes, BadgeCheck, Inbox } from "lucide-react";
 import { BarChart, ChartCard, DonutChart } from "@/components/charts";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -8,19 +10,36 @@ import { useDashboardUser } from "@/components/dashboard/user-context";
 import { BookingBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
-import { useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
+import type { Booking, Service } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function TechnicianOverview() {
   const user = useDashboardUser();
-  const db = useDB();
-  const services = db.services.filter((s) => s.technicianEmail === user.email);
-  const jobs = db.bookings.filter((b) => b.technicianEmail === user.email);
+  const [services, setServices] = useState<Service[]>([]);
+  const [jobs, setJobs] = useState<Booking[]>([]);
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      apiRequest<Service[]>("/api/services/mine", { protectedRequest: true }),
+      apiRequest<Booking[]>("/api/bookings/technician", { protectedRequest: true }),
+    ]).then(([serviceRows, jobRows]) => {
+      if (active) {
+        setServices(serviceRows);
+        setJobs(jobRows);
+      }
+    }).catch((error) => {
+      if (active) toast.error(error instanceof Error ? error.message : "Could not load overview");
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   const approved = services.filter((s) => s.approvalStatus === "approved");
   const pendingRequests = jobs.filter((b) => b.status === "requested");
-  const earned = db.payments.filter((p) => p.technicianEmail === user.email).reduce((s, p) => s + p.amount, 0);
+  const earned = jobs.filter((b) => b.paymentStatus === "paid").reduce((s, b) => s + b.finalAmount, 0);
   const n = (s: string) => jobs.filter((b) => b.status === s).length;
   const a = (s: string) => services.filter((x) => x.approvalStatus === s).length;
 

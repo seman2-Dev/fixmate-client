@@ -6,12 +6,13 @@
 
 On-demand device & home appliance repair booking platform. Verified **technicians** list repair services, **customers** request repairs, track each job step by step and pay with Stripe only after completion, and **admins** moderate listings, users and revenue.
 
-> **Status: Phase 1 (frontend).** All pages, layouts and interactions are built and run against a client-side mock database (`src/lib/mock-db.ts`, persisted in `localStorage`). Phase 2 replaces it with the Express + MongoDB server, BetterAuth, JWT, ImgBB and Stripe.
+> **Status: Full-stack.** The Next.js client uses BetterAuth, and data/payment workflows call the Express + MongoDB API with JWT role middleware and Stripe.
 
-- **Live URL:** _to be added after deployment_
-- **Server repository:** _Phase 2_
+- **Live URL:** https://fixmate-client.vercel.app
+- **Server repository:** https://github.com/seman2-Dev/fixmate-server
+- **Server API:** https://fixmate-server1.vercel.app
 
-## Demo credentials (mock, Phase 1)
+## Demo credentials
 
 All demo accounts use the password `FixMate1`.
 
@@ -84,11 +85,7 @@ Create Google OAuth credentials with the callback URL
 ```
 src/app/(public)   Home, services, service details, about, sign-in, sign-up
 src/app/dashboard  customer / technician / admin / profile (guarded layout)
-src/app/payment    checkout (Phase 1 stand-in for Stripe), success, cancel
+src/app/payment    success and cancel verification pages
 src/components     ui primitives, layout, home, services, dashboard, charts
-src/lib            types, mock-db, services-query, seed data, helpers
+src/lib            BetterAuth, JWT API client, types and helpers
 ```
-
-## Phase 2 swap points
-
-Each mock-db action maps to one API endpoint and is marked with a `// Phase 2:` comment. `/payment/checkout` is removed when real Stripe Checkout is wired in.

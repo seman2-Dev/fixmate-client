@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import type { User } from "@/lib/types";
@@ -9,20 +9,39 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { useDashboardUser } from "@/components/dashboard/user-context";
 import { Avatar } from "@/components/ui/avatar";
 import { RoleBadge } from "@/components/ui/badges";
-import { setUserRole, useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import type { Role } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { NativeSelect } from "@/components/ui/native-select";
 
 export default function AdminUsersPage() {
   const admin = useDashboardUser();
-  const db = useDB();
+  const [users, setUsers] = useState<User[]>([]);
 
-  function change(id: string, name: string, role: Role) {
-    // Phase 2: PATCH /api/admin/users/:id/role (verifyToken + verifyAdmin)
-    const res = setUserRole(admin, id, role);
-    if (res.ok) toast.success(`${name} is now a ${role}`);
-    else toast.error(res.error);
+  useEffect(() => {
+    let active = true;
+    apiRequest<User[]>("/api/admin/users", { protectedRequest: true })
+      .then((result) => {
+        if (active) setUsers(result);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load users"));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function change(id: string, name: string, role: Role) {
+    try {
+      await apiRequest(`/api/admin/users/${id}/role`, {
+        protectedRequest: true,
+        method: "PATCH",
+        body: JSON.stringify({ role }),
+      });
+      setUsers((rows) => rows.map((row) => row._id === id ? { ...row, role } : row));
+      toast.success(`${name} is now a ${role}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update role");
+    }
   }
 
   const columns = useMemo<ColumnDef<User>[]>(
@@ -76,14 +95,13 @@ export default function AdminUsersPage() {
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [admin.email],
   );
 
   return (
     <>
       <PageHeader title="Manage Users" description="See every account and change roles. You cannot change your own role." />
-      <DataTable columns={columns} data={db.users} />
+      <DataTable columns={columns} data={users} />
     </>
   );
 }

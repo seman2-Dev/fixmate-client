@@ -93,6 +93,17 @@ export interface Payment {
   paidAt: string;
 }
 
+export interface ServiceInput {
+  title: string;
+  category: Category;
+  description: string;
+  image: string;
+  basePrice: number;
+  estimatedDuration: string;
+  serviceMode: ServiceMode;
+  serviceArea: string;
+}
+
 /** Fields returned by the (future) server for a service search. */
 export interface ServiceQuery {
   q?: string;

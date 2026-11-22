@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { dashboardPathFor } from "@/lib/mock-db";
+import { dashboardPathFor } from "@/lib/redirect";
 import { signOut } from "@/lib/auth-client";
 import { useSession } from "@/lib/use-session";
 import { cn } from "@/lib/utils";

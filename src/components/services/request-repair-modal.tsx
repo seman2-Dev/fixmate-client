@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Modal } from "@/components/ui/modal";
-import { createBooking } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import type { Service, User } from "@/lib/types";
 import { formatUSD, todayISODate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -49,27 +49,32 @@ export function RequestRepairModal({
     return e;
   }
 
-  function onSubmit(ev: FormEvent) {
+  async function onSubmit(ev: FormEvent) {
     ev.preventDefault();
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length) return;
 
     // Phase 2: POST /api/bookings (verifyToken + verifyCustomer)
-    const res = createBooking(user, service._id, {
-      customerPhone: phone,
-      address,
-      preferredDate,
-      problemDescription: problem,
-    });
-    if (!res.ok) {
-      toast.error(res.error);
-      return;
+    try {
+      await apiRequest("/api/bookings", {
+        protectedRequest: true,
+        method: "POST",
+        body: JSON.stringify({
+          serviceId: service._id,
+          customerPhone: phone,
+          address,
+          preferredDate,
+          problemDescription: problem,
+        }),
+      });
+      toast.success("Repair request sent!", {
+        description: "The technician has been notified.",
+      });
+      setDone(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not send repair request");
     }
-    toast.success("Repair request sent!", {
-      description: "The technician has been notified.",
-    });
-    setDone(true);
   }
 
   function close() {

@@ -2,16 +2,14 @@
 
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, ClipboardList, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { useDashboardUser } from "@/components/dashboard/user-context";
 import { BookingBadge, PaymentBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/modal";
-import { cancelBooking, createCheckoutSession, useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import type { Booking } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -52,26 +50,45 @@ function JobTimeline({ booking }: { booking: Booking }) {
 }
 
 export default function CustomerBookingsPage() {
-  const user = useDashboardUser();
-  const router = useRouter();
-  const db = useDB();
+  const [mine, setMine] = useState<Booking[]>([]);
   const [cancelling, setCancelling] = useState<Booking | null>(null);
-  const mine = db.bookings.filter((b) => b.customerEmail === user.email);
 
-  function confirmCancel() {
+  useEffect(() => {
+    let active = true;
+    apiRequest<Booking[]>("/api/bookings/my", { protectedRequest: true })
+      .then((result) => {
+        if (active) setMine(result);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load bookings"))
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function confirmCancel() {
     if (!cancelling) return;
-    // Phase 2: PATCH /api/bookings/:id/cancel
-    const res = cancelBooking(cancelling._id, user.email);
-    if (res.ok) toast.success("Request cancelled");
-    else toast.error(res.error);
-    setCancelling(null);
+    try {
+      await apiRequest(`/api/bookings/${cancelling._id}/cancel`, { protectedRequest: true, method: "PATCH" });
+      setMine((rows) => rows.map((row) => row._id === cancelling._id ? { ...row, status: "cancelled" } : row));
+      toast.success("Request cancelled");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not cancel booking");
+    } finally {
+      setCancelling(null);
+    }
   }
 
-  function payNow(b: Booking) {
-    // Phase 2: POST /api/payments/create-checkout-session -> redirect to Stripe Checkout URL
-    const res = createCheckoutSession(b._id, user.email);
-    if (!res.ok) return toast.error(res.error);
-    router.push(`/payment/checkout?session_id=${res.data}`);
+  async function payNow(b: Booking) {
+    try {
+      const session = await apiRequest<{ url: string }>("/api/payments/create-checkout-session", {
+        protectedRequest: true,
+        method: "POST",
+        body: JSON.stringify({ bookingId: b._id }),
+      });
+      window.location.assign(session.url);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start payment");
+    }
   }
 
   const actions = (b: Booking) => (

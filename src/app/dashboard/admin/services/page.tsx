@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Wrench, X } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -9,7 +9,7 @@ import { useDashboardUser } from "@/components/dashboard/user-context";
 import { ApprovalBadge, AvailabilityBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/modal";
-import { setServiceApproval, useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import type { ApprovalStatus, Service } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,18 +25,37 @@ const FILTERS: { value: "all" | ApprovalStatus; label: string }[] = [
 ];
 
 export default function AdminServicesPage() {
-  const admin = useDashboardUser();
-  const db = useDB();
+  useDashboardUser();
+  const [services, setServices] = useState<Service[]>([]);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["value"]>("pending"); // pending first by default
   const [rejecting, setRejecting] = useState<Service | null>(null);
 
-  const rows = db.services.filter((s) => filter === "all" || s.approvalStatus === filter);
+  useEffect(() => {
+    let active = true;
+    apiRequest<Service[]>("/api/admin/services", { protectedRequest: true })
+      .then((result) => {
+        if (active) setServices(result);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load services"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  function decide(s: Service, status: ApprovalStatus) {
-    // Phase 2: PATCH /api/admin/services/:id/approval (verifyToken + verifyAdmin)
-    const res = setServiceApproval(s._id, admin, status);
-    if (res.ok) toast.success(status === "approved" ? "Service approved and published" : "Service rejected");
-    else toast.error(res.error);
+  const rows = services.filter((s) => filter === "all" || s.approvalStatus === filter);
+
+  async function decide(s: Service, status: ApprovalStatus) {
+    try {
+      await apiRequest(`/api/admin/services/${s._id}/approval`, {
+        protectedRequest: true,
+        method: "PATCH",
+        body: JSON.stringify({ approvalStatus: status }),
+      });
+      setServices((rows) => rows.map((row) => row._id === s._id ? { ...row, approvalStatus: status } : row));
+      toast.success(status === "approved" ? "Service approved and published" : "Service rejected");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update service");
+    }
   }
 
   return (
@@ -46,7 +65,7 @@ export default function AdminServicesPage() {
       <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-6">
         <TabsList aria-label="Filter by approval status">
           {FILTERS.map((f) => {
-            const count = f.value === "all" ? db.services.length : db.services.filter((s) => s.approvalStatus === f.value).length;
+            const count = f.value === "all" ? services.length : services.filter((s) => s.approvalStatus === f.value).length;
             return (
               <TabsTrigger key={f.value} value={f.value}>
                 {f.label} <span className="rounded-full bg-foreground/10 px-1.5 text-xs tabular-nums">{count}</span>

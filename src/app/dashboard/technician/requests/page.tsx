@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ClipboardList, Check, Play, X } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { useDashboardUser } from "@/components/dashboard/user-context";
 import { BookingBadge, PaymentBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
-import { updateBookingStatus, useDB } from "@/lib/mock-db";
+import { apiRequest } from "@/lib/api-client";
 import type { Booking, BookingStatus } from "@/lib/types";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,22 +26,42 @@ const FILTERS: { value: "all" | BookingStatus; label: string }[] = [
 ];
 
 export default function ManageRequestsPage() {
-  const user = useDashboardUser();
-  const db = useDB();
+  const [all, setAll] = useState<Booking[]>([]);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["value"]>("all");
   const [rejecting, setRejecting] = useState<Booking | null>(null);
   const [completing, setCompleting] = useState<Booking | null>(null);
   const [amount, setAmount] = useState("");
   const [amountError, setAmountError] = useState("");
 
-  const all = db.bookings.filter((b) => b.technicianEmail === user.email);
+  useEffect(() => {
+    let active = true;
+    apiRequest<Booking[]>("/api/bookings/technician", { protectedRequest: true })
+      .then((result) => {
+        if (active) setAll(result);
+      })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load requests"));
+    return () => {
+      active = false;
+    };
+  }, []);
   const rows = filter === "all" ? all : all.filter((b) => b.status === filter);
 
-  function move(b: Booking, next: BookingStatus, label: string) {
-    // Phase 2: PATCH /api/bookings/:id/status (verifyToken + verifyTechnician, owner only)
-    const res = updateBookingStatus(b._id, user.email, next);
-    if (res.ok) toast.success(label);
-    else toast.error(res.error);
+  async function move(b: Booking, next: BookingStatus, label: string, finalAmount?: number) {
+    try {
+      await apiRequest(`/api/bookings/${b._id}/status`, {
+        protectedRequest: true,
+        method: "PATCH",
+        body: JSON.stringify({ status: next, ...(finalAmount ? { finalAmount } : {}) }),
+      });
+      setAll((rows) => rows.map((row) => row._id === b._id ? {
+        ...row,
+        status: next,
+        ...(finalAmount ? { finalAmount } : {}),
+      } : row));
+      toast.success(label);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update job");
+    }
   }
 
   function openComplete(b: Booking) {
@@ -56,9 +75,7 @@ export default function ManageRequestsPage() {
     const value = Number(amount);
     if (!Number.isFinite(value) || value <= 0) return setAmountError("Enter an amount greater than 0");
     if (!completing) return;
-    const res = updateBookingStatus(completing._id, user.email, "completed", Math.round(value * 100) / 100);
-    if (res.ok) toast.success("Job completed", { description: "The customer can now pay." });
-    else toast.error(res.error);
+    void move(completing, "completed", "Job completed", Math.round(value * 100) / 100);
     setCompleting(null);
   }
 
